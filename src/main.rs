@@ -1,4 +1,7 @@
-use serwer::{Action, HTTPMethod, Route, Serwer};
+use serwer::{
+    enums::HTTPMethod,
+    structs::{Action, Route, Serwer},
+};
 
 fn main() {
     let mut serwer = Serwer::new();
