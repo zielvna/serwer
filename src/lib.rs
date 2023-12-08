@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Serwer {
     routes: Vec<Route>,
     port: Option<u16>,
@@ -20,6 +21,7 @@ impl Serwer {
     }
 }
 
+#[derive(Debug)]
 pub struct Route {
     method: HTTPMethod,
     path: String,
@@ -31,6 +33,7 @@ impl Route {
     }
 }
 
+#[derive(Debug)]
 pub enum HTTPMethod {
     GET,
     POST,
