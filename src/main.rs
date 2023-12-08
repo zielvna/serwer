@@ -5,6 +5,6 @@ fn main() {
     println!("{:?}", serwer);
     serwer.add_route(Route::new(HTTPMethod::GET, String::from("/")));
     println!("{:?}", serwer);
-    serwer.listen(80);
+    serwer.listen(7878);
     println!("{:?}", serwer);
 }

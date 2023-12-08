@@ -1,7 +1,10 @@
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener};
+
 #[derive(Debug)]
 pub struct Serwer {
     routes: Vec<Route>,
     port: Option<u16>,
+    listener: Option<TcpListener>,
 }
 
 impl Serwer {
@@ -9,6 +12,7 @@ impl Serwer {
         Self {
             routes: vec![],
             port: None,
+            listener: None,
         }
     }
 
@@ -17,7 +21,9 @@ impl Serwer {
     }
 
     pub fn listen(&mut self, port: u16) {
-        self.port = Some(port)
+        self.port = Some(port);
+        let address = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), port);
+        self.listener = Some(TcpListener::bind(address).unwrap());
     }
 }
 
