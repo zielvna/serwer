@@ -20,4 +20,18 @@ impl Serwer {
     }
 }
 
-pub struct Route {}
+pub struct Route {
+    method: HTTPMethod,
+    path: String,
+}
+
+impl Route {
+    pub fn new(method: HTTPMethod, path: String) -> Self {
+        Self { method, path }
+    }
+}
+
+pub enum HTTPMethod {
+    GET,
+    POST,
+}
