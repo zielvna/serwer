@@ -1,11 +1,8 @@
+use super::{Request, Route};
 use std::{
-    io::{BufRead, BufReader, Write},
+    io::Write,
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
 };
-
-use crate::enums::HTTPMethod;
-
-use super::Route;
 
 #[derive(Debug)]
 pub struct Serwer {
@@ -39,24 +36,11 @@ impl Serwer {
     }
 
     fn handle_connection(&self, mut stream: TcpStream) {
-        let buf_reader = BufReader::new(&stream);
-        let http_request: Vec<_> = buf_reader
-            .lines()
-            .map(|result| result.unwrap())
-            .take_while(|line| !line.is_empty())
-            .collect();
-
-        let parts: Vec<&str> = http_request[0].split(' ').collect();
-
-        let method = match parts[0] {
-            "GET" => HTTPMethod::GET,
-            "POST" => HTTPMethod::POST,
-            _ => panic!("HTTP method of a request not found."),
-        };
-        let path = parts[1];
+        let request = Request::from_stream(&mut stream).unwrap();
 
         for route in self.routes.iter() {
-            if route.get_method() == &method && route.get_path() == path {
+            if route.get_method() == request.get_method() && route.get_path() == request.get_path()
+            {
                 let action_result = route.run_action();
                 let length = action_result.len();
                 let response =

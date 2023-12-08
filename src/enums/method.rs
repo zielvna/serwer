@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq)]
-pub enum HTTPMethod {
+pub enum Method {
     GET,
     POST,
 }
