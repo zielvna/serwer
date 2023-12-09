@@ -1,13 +1,10 @@
-use super::{Action, Request, Response};
-use crate::{
-    enums::{Method, SerwerError},
-    utils::validate_path,
-};
+use super::{Action, Path, Request, Response};
+use crate::enums::{Method, SerwerError};
 
 #[derive(Debug)]
 pub struct Route {
     method: Method,
-    path: String,
+    path: Path,
     action: Action,
 }
 
@@ -16,11 +13,9 @@ impl Route {
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        validate_path(&path)?;
-
         Ok(Self {
             method,
-            path: String::from(path),
+            path: Path::from_string(String::from(path)).unwrap(),
             action: Action::new(action),
         })
     }
@@ -29,7 +24,7 @@ impl Route {
         &self.method
     }
 
-    pub fn get_path(&self) -> &str {
+    pub fn get_path(&self) -> &Path {
         &self.path
     }
 

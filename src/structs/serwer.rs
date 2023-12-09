@@ -56,11 +56,13 @@ impl Serwer {
     }
 
     fn handle_connection(&self, mut stream: TcpStream) {
-        let request = Request::from_stream(&mut stream).unwrap();
+        let mut request = Request::from_stream(&mut stream).unwrap();
 
         for route in self.routes.iter() {
-            if route.get_method() == &request.get_method() && route.get_path() == request.get_path()
-            {
+            let (matches, params) = route.get_path().matches_to(&request.get_path());
+
+            if route.get_method() == &request.get_method() && matches {
+                request.set_params(params.unwrap());
                 let response = route.run_action(request);
                 let body = response.get_body();
                 let length = body.len();

@@ -1,7 +1,5 @@
-use crate::{
-    enums::{Method, SerwerError},
-    utils::validate_path,
-};
+use super::Path;
+use crate::enums::{Method, SerwerError};
 use std::{
     collections::HashMap,
     io::{BufRead, BufReader, Read},
@@ -11,7 +9,8 @@ use std::{
 #[derive(Debug)]
 pub struct Request {
     method: Method,
-    path: String,
+    path: Path,
+    params: HashMap<String, String>,
     version: String,
     headers: HashMap<String, String>,
     body: Option<String>,
@@ -32,8 +31,7 @@ impl Request {
             _ => return Err(SerwerError::MethodNotFound),
         };
 
-        let path = String::from(&first_line[1][1..first_line[1].len()]);
-        validate_path(&path)?;
+        let path = Path::from_string(String::from(first_line[1])).unwrap();
 
         let version = String::from(first_line[2].trim());
         buffer.clear();
@@ -69,6 +67,7 @@ impl Request {
         Ok(Self {
             method,
             path,
+            params: HashMap::new(),
             version,
             headers,
             body,
@@ -79,7 +78,7 @@ impl Request {
         self.method.to_owned()
     }
 
-    pub fn get_path(&self) -> String {
+    pub fn get_path(&self) -> Path {
         self.path.to_owned()
     }
 
@@ -93,5 +92,20 @@ impl Request {
 
     pub fn get_body(&self) -> Option<String> {
         self.body.to_owned()
+    }
+
+    pub fn get_params(&self) -> HashMap<String, String> {
+        self.params.to_owned()
+    }
+
+    pub fn set_params(&mut self, params: HashMap<String, String>) {
+        self.params = params;
+    }
+
+    pub fn get_param(&self, key: &str) -> Option<String> {
+        match self.params.get(key) {
+            Some(string) => Some(string.clone()),
+            None => None.to_owned(),
+        }
     }
 }
