@@ -1,4 +1,5 @@
-use super::{Request, Route};
+use super::{Request, Response, Route};
+use crate::enums::Method;
 use std::{
     io::Write,
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
@@ -20,8 +21,27 @@ impl Serwer {
         }
     }
 
-    pub fn add_route(&mut self, route: Route) {
-        self.routes.push(route);
+    pub fn add_route<F>(&mut self, method: Method, path: &'static str, action: F)
+    where
+        F: Fn(Request, Response) -> Response + 'static,
+    {
+        self.routes.push(Route::new(method, path, action).unwrap());
+    }
+
+    pub fn get<F>(&mut self, path: &'static str, action: F)
+    where
+        F: Fn(Request, Response) -> Response + 'static,
+    {
+        self.routes
+            .push(Route::new(Method::GET, path, action).unwrap());
+    }
+
+    pub fn post<F>(&mut self, path: &'static str, action: F)
+    where
+        F: Fn(Request, Response) -> Response + 'static,
+    {
+        self.routes
+            .push(Route::new(Method::POST, path, action).unwrap());
     }
 
     pub fn listen(&mut self, port: u16) {

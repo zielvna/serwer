@@ -14,7 +14,7 @@ pub struct Route {
 impl Route {
     pub fn new<F>(method: Method, path: &'static str, action: F) -> Result<Self, SerwerError>
     where
-        F: Fn(Request) -> Response + 'static,
+        F: Fn(Request, Response) -> Response + 'static,
     {
         validate_path(&path)?;
 
