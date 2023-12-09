@@ -13,6 +13,7 @@ pub struct Request {
     params: HashMap<String, String>,
     version: String,
     headers: HashMap<String, String>,
+    cookies: HashMap<String, String>,
     body: Option<String>,
 }
 
@@ -51,6 +52,20 @@ impl Request {
             buffer.clear();
         }
 
+        let cookie_header: String = headers
+            .get("Cookie")
+            .unwrap_or(&String::from(""))
+            .parse()
+            .unwrap();
+
+        let mut cookies: HashMap<String, String> = HashMap::new();
+        let cookies_parts: Vec<&str> = cookie_header.split("; ").collect();
+
+        for cookie in cookies_parts.iter() {
+            let cookie_parts: Vec<&str> = cookie.split("=").collect();
+            cookies.insert(String::from(cookie_parts[0]), String::from(cookie_parts[1]));
+        }
+
         let content_length: usize = headers
             .get("Content-Length")
             .unwrap_or(&String::from("0"))
@@ -70,6 +85,7 @@ impl Request {
             params: HashMap::new(),
             version,
             headers,
+            cookies,
             body,
         })
     }
@@ -103,6 +119,17 @@ impl Request {
     }
 
     pub fn get_param(&self, key: &str) -> Option<String> {
+        match self.params.get(key) {
+            Some(string) => Some(string.clone()),
+            None => None.to_owned(),
+        }
+    }
+
+    pub fn get_cookies(&self) -> HashMap<String, String> {
+        self.cookies.to_owned()
+    }
+
+    pub fn get_cookie(&self, key: &str) -> Option<String> {
         match self.params.get(key) {
             Some(string) => Some(string.clone()),
             None => None.to_owned(),

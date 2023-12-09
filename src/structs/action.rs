@@ -1,5 +1,3 @@
-use crate::enums::StatusCode;
-
 use super::{Request, Response};
 
 pub struct Action {
@@ -17,7 +15,7 @@ impl Action {
     }
 
     pub fn run(&self, request: Request) -> Response {
-        let response = Response::new(StatusCode::OK, String::from(""));
+        let response = Response::default();
         (self.func)(request, response)
     }
 }

@@ -63,13 +63,10 @@ impl Serwer {
 
             if route.get_method() == &request.get_method() && matches {
                 request.set_params(params.unwrap());
+
                 let response = route.run_action(request);
-                let body = response.get_body();
-                let length = body.len();
-                let status_code = response.get_status_code().to_string();
-                let response =
-                    format!("HTTP/1.1 {status_code}\r\nContent-Length: {length}\r\n\r\n{body}");
-                stream.write_all(response.as_bytes()).unwrap();
+                stream.write_all(response.write().as_bytes()).unwrap();
+
                 break;
             }
         }
