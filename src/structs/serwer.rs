@@ -39,12 +39,14 @@ impl Serwer {
         let request = Request::from_stream(&mut stream).unwrap();
 
         for route in self.routes.iter() {
-            if route.get_method() == request.get_method() && route.get_path() == request.get_path()
+            if route.get_method() == &request.get_method() && route.get_path() == request.get_path()
             {
-                let action_result = route.run_action();
-                let length = action_result.len();
+                let response = route.run_action(request);
+                let body = response.get_body();
+                let length = body.len();
+                let status_code = response.get_status_code().to_string();
                 let response =
-                    format!("HTTP/1.1 200 OK\r\nContent-Length: {length}\r\n\r\n{action_result}");
+                    format!("HTTP/1.1 {status_code}\r\nContent-Length: {length}\r\n\r\n{body}");
                 stream.write_all(response.as_bytes()).unwrap();
                 break;
             }

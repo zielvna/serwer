@@ -1,6 +1,6 @@
 use crate::enums::SerwerError;
 
-const ALLOWED_CHARACTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const ALLOWED_CHARACTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
 
 pub fn validate_path(path: &str) -> Result<(), SerwerError> {
     if path.starts_with("/") || path.ends_with("/") {

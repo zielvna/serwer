@@ -1,14 +1,27 @@
 use serwer::{
-    enums::Method,
-    structs::{Route, Serwer},
+    enums::{Method, StatusCode},
+    structs::{Response, Route, Serwer},
 };
 
 fn main() {
     let mut serwer = Serwer::new();
-    println!("{:?}", serwer);
-    serwer.add_route(Route::new(Method::GET, "home", || String::from("home")).unwrap());
-    serwer.add_route(Route::new(Method::POST, "login", || String::from("login")).unwrap());
-    println!("{:?}", serwer);
+
+    serwer.add_route(
+        Route::new(Method::GET, "ok", |request| {
+            let method = request.get_method().to_string();
+
+            Response::new(StatusCode::OK, format!("{method} ok"))
+        })
+        .unwrap(),
+    );
+    serwer.add_route(
+        Route::new(Method::POST, "not-found", |request| {
+            let method = request.get_method().to_string();
+
+            Response::new(StatusCode::NotFound, format!("{method} not found"))
+        })
+        .unwrap(),
+    );
+
     serwer.listen(7878);
-    println!("{:?}", serwer);
 }

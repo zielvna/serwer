@@ -75,23 +75,23 @@ impl Request {
         })
     }
 
-    pub fn get_method(&self) -> &Method {
-        &self.method
+    pub fn get_method(&self) -> Method {
+        self.method.to_owned()
     }
 
-    pub fn get_path(&self) -> &str {
-        &self.path
+    pub fn get_path(&self) -> String {
+        self.path.to_owned()
     }
 
-    pub fn get_version(&self) -> &str {
-        &self.version
+    pub fn get_version(&self) -> String {
+        self.version.to_owned()
     }
 
-    pub fn get_headers(&self) -> &HashMap<String, String> {
-        &self.headers
+    pub fn get_headers(&self) -> HashMap<String, String> {
+        self.headers.to_owned()
     }
 
-    pub fn get_body(&self) -> &Option<String> {
-        &self.body
+    pub fn get_body(&self) -> Option<String> {
+        self.body.to_owned()
     }
 }

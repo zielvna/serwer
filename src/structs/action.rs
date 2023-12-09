@@ -1,19 +1,21 @@
+use super::{Request, Response};
+
 pub struct Action {
-    func: Box<dyn Fn() -> String>,
+    func: Box<dyn Fn(Request) -> Response>,
 }
 
 impl Action {
     pub fn new<F>(func: F) -> Self
     where
-        F: Fn() -> String + 'static,
+        F: Fn(Request) -> Response + 'static,
     {
         Self {
             func: Box::new(func),
         }
     }
 
-    pub fn run(&self) -> String {
-        (self.func)()
+    pub fn run(&self, request: Request) -> Response {
+        (self.func)(request)
     }
 }
 
