@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum StatusCode {
     OK = 200,
     NotFound = 404,

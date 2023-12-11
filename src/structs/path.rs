@@ -72,7 +72,8 @@ impl Path {
     }
 }
 
-const ALLOWED_CHARACTERS: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_";
+const ALLOWED_CHARACTERS: &str =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.";
 
 fn validate_part(part: &str) -> Result<(String, bool), SerwerError> {
     let (part, is_param) = match part.starts_with("<") {

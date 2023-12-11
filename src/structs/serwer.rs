@@ -1,7 +1,9 @@
 use super::{Request, Response, Route};
 use crate::enums::Method;
 use std::{
-    io::Write,
+    env,
+    fs::{self, File},
+    io::{Read, Write},
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
 };
 
@@ -10,6 +12,7 @@ pub struct Serwer {
     routes: Vec<Route>,
     port: Option<u16>,
     listener: Option<TcpListener>,
+    public_path: Option<String>,
 }
 
 impl Serwer {
@@ -18,6 +21,7 @@ impl Serwer {
             routes: vec![],
             port: None,
             listener: None,
+            public_path: None,
         }
     }
 
@@ -65,10 +69,39 @@ impl Serwer {
                 request.set_params(params.unwrap());
 
                 let response = route.run_action(request);
-                stream.write_all(response.write().as_bytes()).unwrap();
+                stream.write_all(response.write().as_slice()).unwrap();
 
-                break;
+                return;
             }
         }
+
+        let file_path = env::current_dir()
+            .unwrap()
+            .join(self.public_path.as_ref().unwrap())
+            .join(request.get_path().get_string());
+
+        if let Ok(mut file) = File::open(file_path) {
+            let mut buffer = Vec::new();
+            file.read_to_end(&mut buffer).unwrap();
+
+            let mut response = Response::default();
+            response.set_body(buffer);
+            stream.write_all(response.write().as_slice()).unwrap();
+        };
+    }
+
+    pub fn public(&mut self, path: &str) {
+        let metadata = fs::metadata(&path).unwrap_or_else(|error| {
+            panic!(
+                "Error while trying to read metadata from a path: {:?}",
+                error.to_string()
+            )
+        });
+
+        if !metadata.is_dir() {
+            panic!("Path is not a directory.");
+        }
+
+        self.public_path = Some(String::from(path));
     }
 }
