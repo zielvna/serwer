@@ -1,4 +1,6 @@
-#[derive(Debug, Clone)]
+use std::string::ToString;
+
+#[derive(Debug, PartialEq, Clone)]
 pub enum StatusCode {
     Continue = 100,
     SwitchingProtocols = 101,
@@ -64,7 +66,7 @@ pub enum StatusCode {
     NetworkAuthenticationRequired = 511,
 }
 
-impl std::string::ToString for StatusCode {
+impl ToString for StatusCode {
     fn to_string(&self) -> String {
         match self {
             StatusCode::Continue => String::from("100 Continue"),
