@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum SerwerError {
-    InvalidPathCharacters,
     InvalidPathSlashes,
-    InvalidPathPart,
+    EmptyPathSegment,
+    InvalidPathSegmentCharacters,
     MethodNotFound,
 }

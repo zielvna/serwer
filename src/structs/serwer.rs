@@ -63,7 +63,7 @@ impl Serwer {
         let mut request = Request::from_stream(&mut stream).unwrap();
 
         for route in self.routes.iter() {
-            let (matches, params) = route.get_path().matches_to(&request.get_path());
+            let (matches, params) = route.get_path().matches(&request.get_path());
 
             if route.get_method() == &request.get_method() && matches {
                 request.set_params(params.unwrap());

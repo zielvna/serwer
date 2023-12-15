@@ -32,7 +32,7 @@ impl Request {
             _ => return Err(SerwerError::MethodNotFound),
         };
 
-        let path = Path::from_string(String::from(first_line[1])).unwrap();
+        let path = Path::from_string(&String::from(first_line[1])).unwrap();
 
         let version = String::from(first_line[2].trim());
         buffer.clear();
