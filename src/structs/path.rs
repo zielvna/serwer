@@ -45,34 +45,26 @@ impl Path {
     pub fn matches(&self, other_path: &Path) -> (bool, Option<Params>) {
         let mut params = Params::new();
 
-        if self.segments_length != other_path.segments_length {
+        if (self.segments_length != other_path.segments_length)
+            || (self.contains_params() && other_path.contains_params())
+        {
             return (false, None);
         }
 
-        for i in 0..self.segments_length {
+        for (segment, other_segment) in self.segments.iter().zip(&other_path.segments) {
             let mut is_param = false;
 
-            if self.segments[i].is_param() && other_path.segments[i].is_param() {
-                return (false, None);
-            }
-
-            if self.segments[i].is_param() {
+            if segment.is_param() {
                 is_param = true;
-                params.set_param(
-                    self.segments[i].get_string(),
-                    other_path.segments[i].get_string(),
-                );
+                params.set_param(segment.get_string(), other_segment.get_string());
             }
 
-            if other_path.segments[i].is_param() {
+            if other_segment.is_param() {
                 is_param = true;
-                params.set_param(
-                    other_path.segments[i].get_string(),
-                    self.segments[i].get_string(),
-                );
+                params.set_param(other_segment.get_string(), segment.get_string());
             }
 
-            if !is_param && self.segments[i] != other_path.segments[i] {
+            if !is_param && segment.get_string() != other_segment.get_string() {
                 return (false, None);
             }
         }
@@ -82,6 +74,18 @@ impl Path {
 
     pub fn get_string(&self) -> &String {
         &self.string
+    }
+
+    pub fn contains_params(&self) -> bool {
+        let mut contains_params = false;
+
+        for segment in self.segments.iter() {
+            if segment.is_param() {
+                contains_params = true;
+            }
+        }
+
+        contains_params
     }
 }
 
@@ -180,6 +184,11 @@ mod tests {
 
         let path = Path::from_string(&String::from("/user/1/post/2")).unwrap();
         let other_path = Path::from_string(&String::from("/user/<id>")).unwrap();
+        let result = path.matches(&other_path);
+        assert_eq!(result, (false, None));
+
+        let path = Path::from_string(&String::from("/user/<user_id>/post/2")).unwrap();
+        let other_path = Path::from_string(&String::from("/user/1/post/<post_id>")).unwrap();
         let result = path.matches(&other_path);
         assert_eq!(result, (false, None));
     }
