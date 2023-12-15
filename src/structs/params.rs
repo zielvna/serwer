@@ -28,3 +28,27 @@ impl Params {
         self.params = params;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_set_param() {
+        let mut params = Params::new();
+        params.set_param("id", "1");
+
+        assert_eq!(params.get_param("id"), Some(String::from("1")));
+    }
+
+    #[test]
+    fn test_set_params() {
+        let mut params = Params::new();
+        params.set_param("id", "1");
+
+        let mut another_params = Params::new();
+        another_params.set_params(params.get_params());
+
+        assert_eq!(another_params.get_param("id"), Some(String::from("1")));
+    }
+}
