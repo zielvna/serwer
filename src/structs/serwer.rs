@@ -66,7 +66,7 @@ impl Serwer {
             let (matches, params) = route.get_path().matches(&request.get_path());
 
             if route.get_method() == &request.get_method() && matches {
-                request.set_params(params.unwrap());
+                request.set_params(params.unwrap().get_params());
 
                 let response = route.run_action(request);
                 stream.write_all(response.write().as_slice()).unwrap();

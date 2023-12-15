@@ -1,6 +1,5 @@
-use super::Segment;
+use super::{Params, Segment};
 use crate::enums::SerwerError;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct Path {
@@ -10,16 +9,17 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn from_string(string: &String) -> Result<Self, SerwerError> {
-        let mut string = string.clone();
+    pub fn from_string(string: &str) -> Result<Self, SerwerError> {
+        let string = string.to_string();
 
         if !string.starts_with("/") || string.ends_with("/") || string.contains("//") {
             return Err(SerwerError::InvalidPathSlashes);
         }
 
-        string.remove(0);
-
-        let parts: Vec<String> = string.split("/").map(String::from).collect();
+        let parts: Vec<String> = string[1..string.len()]
+            .split("/")
+            .map(String::from)
+            .collect();
         let mut segments: Vec<Segment> = vec![];
         let mut segments_length = 0;
 
@@ -30,14 +30,14 @@ impl Path {
         }
 
         Ok(Self {
-            string: String::from(string),
+            string,
             segments,
             segments_length,
         })
     }
 
-    pub fn matches(&self, other_path: &Path) -> (bool, Option<HashMap<String, String>>) {
-        let mut params: HashMap<String, String> = HashMap::new();
+    pub fn matches(&self, other_path: &Path) -> (bool, Option<Params>) {
+        let mut params = Params::new();
 
         if self.segments_length != other_path.segments_length {
             return (false, None);
@@ -48,17 +48,17 @@ impl Path {
 
             if self.segments[i].is_param() {
                 is_param = true;
-                params.insert(
-                    self.segments[i].get_string().clone(),
-                    other_path.segments[i].get_string().clone(),
+                params.set_param(
+                    self.segments[i].get_string(),
+                    other_path.segments[i].get_string(),
                 );
             }
 
             if other_path.segments[i].is_param() {
                 is_param = true;
-                params.insert(
-                    other_path.segments[i].get_string().clone(),
-                    self.segments[i].get_string().clone(),
+                params.set_param(
+                    other_path.segments[i].get_string(),
+                    self.segments[i].get_string(),
                 );
             }
 

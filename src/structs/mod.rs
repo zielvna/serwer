@@ -1,4 +1,5 @@
 pub mod action;
+pub mod params;
 pub mod path;
 pub mod request;
 pub mod response;
@@ -7,6 +8,7 @@ pub mod segment;
 pub mod serwer;
 
 pub use action::*;
+pub use params::*;
 pub use path::*;
 pub use request::*;
 pub use response::*;
