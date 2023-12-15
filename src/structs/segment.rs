@@ -41,3 +41,70 @@ impl Segment {
         self.is_param
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_string() {
+        let string = &String::from("user");
+        let result = Segment::from_string(string);
+        assert_eq!(
+            result,
+            Ok(Segment {
+                string: String::from("user"),
+                is_param: false
+            })
+        );
+
+        let string = &String::from("<user>");
+        let result = Segment::from_string(string);
+        assert_eq!(
+            result,
+            Ok(Segment {
+                string: String::from("user"),
+                is_param: true
+            })
+        );
+    }
+
+    #[test]
+    fn test_from_string_characters() {
+        let string = &String::from("u_s-e.r~");
+        let result = Segment::from_string(string);
+        assert_eq!(
+            result,
+            Ok(Segment {
+                string: String::from("u_s-e.r~"),
+                is_param: false
+            })
+        );
+
+        let string = &String::from("u!s@e#r$");
+        let result = Segment::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+    }
+
+    #[test]
+    fn test_from_string_empty() {
+        let string = &String::from("");
+        let result = Segment::from_string(string);
+        assert_eq!(result, Err(SerwerError::EmptyPathSegment));
+
+        let string = &String::from("<>");
+        let result = Segment::from_string(string);
+        assert_eq!(result, Err(SerwerError::EmptyPathSegment));
+    }
+
+    #[test]
+    fn test_from_string_invalid_param_chars() {
+        let string = &String::from("<user");
+        let result = Segment::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+
+        let string = &String::from("<use>r");
+        let result = Segment::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+    }
+}
