@@ -1,5 +1,6 @@
 pub mod action;
 pub mod cookies;
+pub mod headers;
 pub mod params;
 pub mod path;
 pub mod query_params;
@@ -11,6 +12,7 @@ pub mod serwer;
 
 pub use action::*;
 pub use cookies::*;
+pub use headers::*;
 pub use params::*;
 pub use path::*;
 pub use query_params::*;

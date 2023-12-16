@@ -1,7 +1,6 @@
-use super::{Cookies, Params, Path};
+use super::{Cookies, Headers, Params, Path};
 use crate::enums::{Method, SerwerError};
 use std::{
-    collections::HashMap,
     io::{BufRead, BufReader, Read},
     net::TcpStream,
 };
@@ -12,7 +11,7 @@ pub struct Request {
     path: Path,
     params: Params,
     version: String,
-    headers: HashMap<String, String>,
+    headers: Headers,
     cookies: Cookies,
     body: Option<String>,
 }
@@ -21,9 +20,10 @@ impl Request {
     pub fn from_stream(stream: &mut TcpStream) -> Result<Self, SerwerError> {
         let mut buf_reader = BufReader::new(&*stream);
         let buffer = &mut String::new();
-        buf_reader.read_line(buffer).unwrap();
 
+        buf_reader.read_line(buffer).unwrap();
         let first_line: Vec<&str> = buffer.split(" ").collect();
+
         let method_string = first_line[0];
         let path_string = first_line[1];
         let version_string = first_line[2].trim();
@@ -34,32 +34,26 @@ impl Request {
 
         buffer.clear();
 
-        let mut headers: HashMap<String, String> = HashMap::new();
+        let mut headers = Headers::new();
 
         while let Ok(_) = buf_reader.read_line(buffer) {
-            let trimmed_buffer = buffer.trim();
-            if trimmed_buffer == "" {
+            let parsed_buffer = buffer.replace("\r\n", "");
+
+            if parsed_buffer == "" {
                 break;
             }
 
-            let header_parts: Vec<&str> = trimmed_buffer.split(":").collect();
-            headers.insert(
-                header_parts[0].trim().to_string(),
-                header_parts[1].trim().to_string(),
-            );
+            headers.set_header_from_string(&parsed_buffer)?;
 
             buffer.clear();
         }
 
-        let cookies_string = headers
-            .get("Cookie")
-            .unwrap_or(&String::from(""))
-            .to_string();
+        let cookies_string = headers.get_header("Cookie").unwrap_or(String::from(""));
         let cookies = Cookies::from_string(&cookies_string)?;
 
         let content_length: usize = headers
-            .get("Content-Length")
-            .unwrap_or(&String::from("0"))
+            .get_header("Content-Length")
+            .unwrap_or(String::from("0"))
             .parse()
             .unwrap();
         let mut body: Option<String> = None;
@@ -93,7 +87,7 @@ impl Request {
         self.version.to_owned()
     }
 
-    pub fn get_headers(&self) -> HashMap<String, String> {
+    pub fn get_headers(&self) -> Headers {
         self.headers.to_owned()
     }
 
