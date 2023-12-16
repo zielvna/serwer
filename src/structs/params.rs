@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Params {
-    pub params: HashMap<String, String>,
+    params: HashMap<String, String>,
 }
 
 impl Params {

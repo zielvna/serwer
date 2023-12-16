@@ -10,7 +10,7 @@ const ALLOWED_CHARACTERS: &str =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
 
 impl Segment {
-    pub fn from_string(string: &str) -> Result<Segment, SerwerError> {
+    pub fn from_string(string: &str) -> Result<Self, SerwerError> {
         let mut string = string.to_string();
 
         let is_param = string.starts_with("<") && string.ends_with(">");
