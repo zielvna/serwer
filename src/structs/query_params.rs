@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use crate::enums::SerwerError;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct QueryParams {
@@ -33,7 +32,7 @@ impl QueryParams {
             let value = &parts[1];
 
             if key.is_empty() || value.is_empty() {
-                return Err(SerwerError::InvalidPathQueryParam);
+                return Err(SerwerError::EmptyPathQueryParam);
             }
 
             for char in key.chars() {
@@ -119,15 +118,15 @@ mod tests {
     fn test_from_string_invalid_query_param() {
         let string = &String::from("id=");
         let result = QueryParams::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
+        assert_eq!(result, Err(SerwerError::EmptyPathQueryParam));
 
         let string = &String::from("=1");
         let result = QueryParams::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
+        assert_eq!(result, Err(SerwerError::EmptyPathQueryParam));
 
         let string = &String::from("id=1&name=");
         let result = QueryParams::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
+        assert_eq!(result, Err(SerwerError::EmptyPathQueryParam));
     }
 
     #[test]

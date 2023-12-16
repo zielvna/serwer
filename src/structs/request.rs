@@ -1,4 +1,4 @@
-use super::Path;
+use super::{Cookies, Params, Path};
 use crate::enums::{Method, SerwerError};
 use std::{
     collections::HashMap,
@@ -10,10 +10,10 @@ use std::{
 pub struct Request {
     method: Method,
     path: Path,
-    params: HashMap<String, String>,
+    params: Params,
     version: String,
     headers: HashMap<String, String>,
-    cookies: HashMap<String, String>,
+    cookies: Cookies,
     body: Option<String>,
 }
 
@@ -21,21 +21,20 @@ impl Request {
     pub fn from_stream(stream: &mut TcpStream) -> Result<Self, SerwerError> {
         let mut buf_reader = BufReader::new(&*stream);
         let buffer = &mut String::new();
-        let mut headers: HashMap<String, String> = HashMap::new();
-
         buf_reader.read_line(buffer).unwrap();
+
         let first_line: Vec<&str> = buffer.split(" ").collect();
+        let method_string = first_line[0];
+        let path_string = first_line[1];
+        let version_string = first_line[2].trim();
 
-        let method = match first_line[0] {
-            "GET" => Method::GET,
-            "POST" => Method::POST,
-            _ => return Err(SerwerError::MethodNotFound),
-        };
+        let method = Method::from_string(method_string)?;
+        let path = Path::from_string(path_string)?;
+        let version = String::from(version_string);
 
-        let path = Path::from_string(&String::from(first_line[1])).unwrap();
-
-        let version = String::from(first_line[2].trim());
         buffer.clear();
+
+        let mut headers: HashMap<String, String> = HashMap::new();
 
         while let Ok(_) = buf_reader.read_line(buffer) {
             let trimmed_buffer = buffer.trim();
@@ -52,19 +51,11 @@ impl Request {
             buffer.clear();
         }
 
-        let cookie_header: String = headers
+        let cookies_string = headers
             .get("Cookie")
             .unwrap_or(&String::from(""))
-            .parse()
-            .unwrap();
-
-        let mut cookies: HashMap<String, String> = HashMap::new();
-        let cookies_parts: Vec<&str> = cookie_header.split("; ").collect();
-
-        for cookie in cookies_parts.iter() {
-            let cookie_parts: Vec<&str> = cookie.split("=").collect();
-            cookies.insert(String::from(cookie_parts[0]), String::from(cookie_parts[1]));
-        }
+            .to_string();
+        let cookies = Cookies::from_string(&cookies_string)?;
 
         let content_length: usize = headers
             .get("Content-Length")
@@ -82,7 +73,7 @@ impl Request {
         Ok(Self {
             method,
             path,
-            params: HashMap::new(),
+            params: Params::new(),
             version,
             headers,
             cookies,
@@ -110,30 +101,24 @@ impl Request {
         self.body.to_owned()
     }
 
-    pub fn get_params(&self) -> HashMap<String, String> {
+    pub fn get_params(&self) -> Params {
         self.params.to_owned()
     }
 
-    pub fn set_params(&mut self, params: HashMap<String, String>) {
+    pub fn set_params(&mut self, params: Params) {
         self.params = params;
     }
 
     pub fn get_param(&self, key: &str) -> Option<String> {
-        match self.params.get(key) {
-            Some(string) => Some(string.clone()),
-            None => None.to_owned(),
-        }
+        self.params.get_param(key)
     }
 
-    pub fn get_cookies(&self) -> HashMap<String, String> {
+    pub fn get_cookies(&self) -> Cookies {
         self.cookies.to_owned()
     }
 
     pub fn get_cookie(&self, key: &str) -> Option<String> {
-        match self.params.get(key) {
-            Some(string) => Some(string.clone()),
-            None => None.to_owned(),
-        }
+        self.cookies.get_cookie(key)
     }
 
     pub fn get_query_param(&self, key: &str) -> Option<String> {

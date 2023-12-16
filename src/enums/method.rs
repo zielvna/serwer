@@ -1,5 +1,7 @@
 use std::string::ToString;
 
+use super::SerwerError;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Method {
     GET,
@@ -11,6 +13,23 @@ pub enum Method {
     OPTIONS,
     TRACE,
     PATCH,
+}
+
+impl Method {
+    pub fn from_string(string: &str) -> Result<Self, SerwerError> {
+        match string {
+            "GET" => Ok(Method::GET),
+            "HEAD" => Ok(Method::HEAD),
+            "POST" => Ok(Method::POST),
+            "PUT" => Ok(Method::PUT),
+            "DELETE" => Ok(Method::DELETE),
+            "CONNECT" => Ok(Method::CONNECT),
+            "OPTIONS" => Ok(Method::OPTIONS),
+            "TRACE" => Ok(Method::TRACE),
+            "PATCH" => Ok(Method::PATCH),
+            _ => Err(SerwerError::MethodNotFound),
+        }
+    }
 }
 
 impl ToString for Method {

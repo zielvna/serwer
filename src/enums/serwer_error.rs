@@ -1,10 +1,13 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum SerwerError {
     InvalidPathSlashes,
-    InvalidPathQueryParams,
     InvalidPathQueryParam,
+    EmptyPathQueryParam,
     InvalidPathQueryParamCharacters,
     EmptyPathSegment,
     InvalidPathSegmentCharacters,
+    InvalidCookie,
+    EmptyCookie,
+    InvalidCookieCharacters,
     MethodNotFound,
 }
