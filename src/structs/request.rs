@@ -100,7 +100,7 @@ impl Request {
     }
 
     pub fn get_query_param(&self, key: &str) -> Option<String> {
-        self.path.get_query_param(key)
+        self.path.get_query_param(key).cloned()
     }
 
     pub fn get_query_params(&self) -> QueryParams {

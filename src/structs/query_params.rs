@@ -1,13 +1,19 @@
 use crate::enums::SerwerError;
 use std::collections::HashMap;
 
+const NAME_ALLOWED_CHARACTERS: &str =
+    "-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
+
+const VALUE_ALLOWED_CHARACTERS: &str =
+    "%+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
+
+const VALUE_ALLOWED_CHARACTERS_WITH_RESERVED: &str =
+    " !#$&'()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]_abcdefghijklmnopqrstuvwxyz~";
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct QueryParams {
     query_params: HashMap<String, String>,
 }
-
-const ALLOWED_CHARACTERS: &str =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
 
 impl QueryParams {
     pub fn new() -> Self {
@@ -17,56 +23,71 @@ impl QueryParams {
     }
 
     pub fn from_string(string: &str) -> Result<Self, SerwerError> {
-        let mut query_params = Self::new();
+        let mut query_params = HashMap::new();
 
         let parts: Vec<String> = string.split("&").map(String::from).collect();
 
         for part in parts.iter() {
-            let parts: Vec<String> = part.split("=").map(String::from).collect();
+            let (name, value) = part
+                .split_once('=')
+                .ok_or(SerwerError::InvalidPathQueryParam)?;
+            let value = value.trim();
 
-            if parts.len() != 2 {
+            if name.is_empty() || value.is_empty() {
                 return Err(SerwerError::InvalidPathQueryParam);
             }
 
-            let key = &parts[0];
-            let value = &parts[1];
-
-            if key.is_empty() || value.is_empty() {
-                return Err(SerwerError::EmptyPathQueryParam);
+            if !name.chars().all(|c| NAME_ALLOWED_CHARACTERS.contains(c)) {
+                return Err(SerwerError::InvalidPathQueryParamCharacters);
             }
 
-            for char in key.chars() {
-                if !ALLOWED_CHARACTERS.contains(char) {
-                    return Err(SerwerError::InvalidPathQueryParamCharacters);
-                }
+            if !value.chars().all(|c| VALUE_ALLOWED_CHARACTERS.contains(c)) {
+                return Err(SerwerError::InvalidPathQueryParamCharacters);
             }
 
-            for char in value.chars() {
-                if !ALLOWED_CHARACTERS.contains(char) {
-                    return Err(SerwerError::InvalidPathQueryParamCharacters);
-                }
+            let value = Self::decode(value)?;
+
+            if !value
+                .chars()
+                .all(|c| VALUE_ALLOWED_CHARACTERS_WITH_RESERVED.contains(c))
+            {
+                return Err(SerwerError::InvalidPathQueryParamCharacters);
             }
 
-            query_params.set_query_param(key, value);
+            query_params.insert(String::from(name), String::from(value));
         }
 
-        Ok(query_params)
+        Ok(Self { query_params })
     }
 
-    pub fn get_query_param(&self, key: &str) -> Option<String> {
-        self.query_params.get(key).cloned()
+    fn decode(string: &str) -> Result<String, SerwerError> {
+        let mut result = String::new();
+        let mut chars = string.chars();
+
+        while let Some(char) = chars.next() {
+            if char == '%' {
+                let mut hex = String::new();
+
+                hex.push(chars.next().ok_or(SerwerError::PathQueryParamDecodeError)?);
+                hex.push(chars.next().ok_or(SerwerError::PathQueryParamDecodeError)?);
+
+                let decoded = u8::from_str_radix(&hex, 16)
+                    .map_err(|_| SerwerError::PathQueryParamDecodeError)?
+                    as char;
+
+                result.push(decoded as char);
+            } else {
+                result.push(char);
+            }
+        }
+
+        let result = result.replace("+", " ");
+
+        Ok(result)
     }
 
-    pub fn get_query_params(&self) -> HashMap<String, String> {
-        self.query_params.to_owned()
-    }
-
-    pub fn set_query_param(&mut self, key: &str, value: &str) {
-        self.query_params.insert(key.to_string(), value.to_string());
-    }
-
-    pub fn set_query_params(&mut self, query_params: HashMap<String, String>) {
-        self.query_params = query_params;
+    pub fn get_query_param(&self, key: &str) -> Option<&String> {
+        self.query_params.get(key)
     }
 }
 
@@ -79,17 +100,51 @@ mod tests {
         let string = &String::from("id=1");
         let result = QueryParams::from_string(string);
 
-        let mut query_params = QueryParams::new();
-        query_params.set_query_param("id", "1");
+        let mut hashmap = HashMap::new();
+        hashmap.insert(String::from("id"), String::from("1"));
+        let query_params = QueryParams {
+            query_params: hashmap.clone(),
+        };
 
         assert_eq!(result, Ok(query_params.clone()));
 
-        let string = &String::from("id=1&name=John");
+        let string = &String::from("id=1&name=John+Doe");
         let result = QueryParams::from_string(string);
 
-        query_params.set_query_param("name", "John");
+        hashmap.insert(String::from("name"), String::from("John Doe"));
+        let query_params = QueryParams {
+            query_params: hashmap,
+        };
+
+        assert_eq!(result, Ok(query_params.clone()));
+
+        let string = &String::from("id=1&name=John%20Doe");
+        let result = QueryParams::from_string(string);
 
         assert_eq!(result, Ok(query_params));
+    }
+
+    #[test]
+    fn test_from_string_invalid_characters() {
+        let string = &String::from("name=Jo€hn");
+        let result = QueryParams::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParamCharacters));
+
+        let string = &String::from("na@me=John");
+        let result = QueryParams::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParamCharacters));
+
+        let string = &String::from("name=Jo%5Ehn");
+        let result = QueryParams::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParamCharacters));
+
+        let string = &String::from("name=Jo hn");
+        let result = QueryParams::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParamCharacters));
+
+        let string = &String::from("name=Jo%hn");
+        let result = QueryParams::from_string(string);
+        assert_eq!(result, Err(SerwerError::PathQueryParamDecodeError));
     }
 
     #[test]
@@ -112,42 +167,24 @@ mod tests {
         let string = &String::from("");
         let result = QueryParams::from_string(string);
         assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
+
+        let string = &String::from("=");
+        let result = QueryParams::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
     }
 
     #[test]
     fn test_from_string_invalid_query_param() {
         let string = &String::from("id=");
         let result = QueryParams::from_string(string);
-        assert_eq!(result, Err(SerwerError::EmptyPathQueryParam));
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
 
         let string = &String::from("=1");
         let result = QueryParams::from_string(string);
-        assert_eq!(result, Err(SerwerError::EmptyPathQueryParam));
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
 
         let string = &String::from("id=1&name=");
         let result = QueryParams::from_string(string);
-        assert_eq!(result, Err(SerwerError::EmptyPathQueryParam));
-    }
-
-    #[test]
-    fn test_set_param() {
-        let mut query_params = QueryParams::new();
-        query_params.set_query_param("id", "1");
-
-        assert_eq!(query_params.get_query_param("id"), Some(String::from("1")));
-    }
-
-    #[test]
-    fn test_set_params() {
-        let mut query_params = QueryParams::new();
-        query_params.set_query_param("id", "1");
-
-        let mut another_query_params = QueryParams::new();
-        another_query_params.set_query_params(query_params.get_query_params());
-
-        assert_eq!(
-            another_query_params.get_query_param("id"),
-            Some(String::from("1"))
-        );
+        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
     }
 }
