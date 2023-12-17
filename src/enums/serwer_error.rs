@@ -11,10 +11,8 @@ pub enum SerwerError {
     InvalidPathSegmentCharacters,
     InvalidVersion,
     InvalidHeader,
-    EmptyHeader,
     InvalidHeaderCharacters,
     InvalidCookie,
-    EmptyCookie,
     InvalidCookieCharacters,
     InvalidRequestBody,
 }

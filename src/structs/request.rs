@@ -58,14 +58,17 @@ impl Request {
             headers.set_header_from_string(&parsed_buffer)?;
         }
 
-        let cookies_string = headers.get_header("Cookie").unwrap_or(String::from(""));
+        let cookies_string = headers
+            .get_header("Cookie")
+            .map(|s| s.to_owned())
+            .unwrap_or_default();
         let cookies = Cookies::from_string(&cookies_string)?;
 
         let content_length: usize = headers
             .get_header("Content-Length")
-            .unwrap_or(String::from("0"))
+            .unwrap_or(&String::from("0"))
             .parse()
-            .unwrap_or(0);
+            .unwrap_or_default();
         let mut body: Option<String> = None;
 
         if content_length > 0 {
@@ -109,7 +112,7 @@ impl Request {
     }
 
     pub fn get_header(&self, key: &str) -> Option<String> {
-        self.headers.get_header(key)
+        self.headers.get_header(key).cloned()
     }
 
     pub fn get_headers(&self) -> Headers {

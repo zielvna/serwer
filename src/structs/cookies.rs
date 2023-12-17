@@ -19,16 +19,10 @@ impl Cookies {
         let parts: Vec<&str> = string.split("; ").collect();
 
         for part in parts.iter() {
-            let cookie_parts: Vec<&str> = part.splitn(2, '=').collect();
-
-            if cookie_parts.len() != 2 {
-                return Err(SerwerError::InvalidCookie);
-            };
-
-            let (name, value) = (cookie_parts[0], cookie_parts[1]);
+            let (name, value) = part.split_once('=').ok_or(SerwerError::InvalidCookie)?;
 
             if name.is_empty() || value.is_empty() {
-                return Err(SerwerError::EmptyCookie);
+                return Err(SerwerError::InvalidCookie);
             }
 
             if !name.chars().all(|c| NAME_ALLOWED_CHARACTERS.contains(c)) {
@@ -148,20 +142,24 @@ mod tests {
         let string = &String::from("");
         let result = Cookies::from_string(string);
         assert_eq!(result, Err(SerwerError::InvalidCookie));
+
+        let string = &String::from("=");
+        let result = Cookies::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidCookie));
     }
 
     #[test]
     fn test_from_string_invalid_cookie() {
         let string = &String::from("id=");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::EmptyCookie));
+        assert_eq!(result, Err(SerwerError::InvalidCookie));
 
         let string = &String::from("=1");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::EmptyCookie));
+        assert_eq!(result, Err(SerwerError::InvalidCookie));
 
         let string = &String::from("id=1; name=");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::EmptyCookie));
+        assert_eq!(result, Err(SerwerError::InvalidCookie));
     }
 }
