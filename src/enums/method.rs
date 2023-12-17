@@ -1,5 +1,3 @@
-use std::string::ToString;
-
 use super::SerwerError;
 
 #[derive(Debug, PartialEq, Clone)]
@@ -27,7 +25,7 @@ impl Method {
             "OPTIONS" => Ok(Method::OPTIONS),
             "TRACE" => Ok(Method::TRACE),
             "PATCH" => Ok(Method::PATCH),
-            _ => Err(SerwerError::MethodNotFound),
+            _ => Err(SerwerError::InvalidMethod),
         }
     }
 }
