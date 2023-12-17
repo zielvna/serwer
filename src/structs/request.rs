@@ -117,7 +117,7 @@ impl Request {
     }
 
     pub fn get_cookie(&self, key: &str) -> Option<String> {
-        self.cookies.get_cookie(key)
+        self.cookies.get_cookie(key).cloned()
     }
 
     pub fn get_cookies(&self) -> Cookies {

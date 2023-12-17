@@ -1,72 +1,65 @@
 use crate::enums::SerwerError;
 use std::collections::HashMap;
 
+const NAME_ALLOWED_CHARACTERS: &str =
+    "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~";
+
+const VALUE_ALLOWED_CHARACTERS: &str =
+    "!#$%&'()*+-./0123456789:<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Cookies {
     cookies: HashMap<String, String>,
 }
 
-const ALLOWED_CHARACTERS: &str =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_.~";
-
 impl Cookies {
-    pub fn new() -> Self {
-        Self {
-            cookies: HashMap::new(),
-        }
-    }
-
     pub fn from_string(string: &str) -> Result<Self, SerwerError> {
-        let mut cookies = Self::new();
+        let mut cookies = HashMap::new();
 
-        let parts: Vec<String> = string.split("; ").map(String::from).collect();
+        let parts: Vec<&str> = string.split("; ").collect();
 
         for part in parts.iter() {
-            let parts: Vec<String> = part.split("=").map(String::from).collect();
+            let cookie_parts: Vec<&str> = part.splitn(2, '=').collect();
 
-            if parts.len() != 2 {
+            if cookie_parts.len() != 2 {
                 return Err(SerwerError::InvalidCookie);
-            }
+            };
 
-            let key = &parts[0];
-            let value = &parts[1];
+            let (name, value) = (cookie_parts[0], cookie_parts[1]);
 
-            if key.is_empty() || value.is_empty() {
+            if name.is_empty() || value.is_empty() {
                 return Err(SerwerError::EmptyCookie);
             }
 
-            for char in key.chars() {
-                if !ALLOWED_CHARACTERS.contains(char) {
+            if !name.chars().all(|c| NAME_ALLOWED_CHARACTERS.contains(c)) {
+                return Err(SerwerError::InvalidCookieCharacters);
+            }
+
+            if value.starts_with("\"") && value.ends_with("\"") {
+                if !value[1..value.len() - 1]
+                    .chars()
+                    .all(|c| VALUE_ALLOWED_CHARACTERS.contains(c))
+                {
+                    return Err(SerwerError::InvalidCookieCharacters);
+                }
+            } else {
+                if !value.chars().all(|c| VALUE_ALLOWED_CHARACTERS.contains(c)) {
                     return Err(SerwerError::InvalidCookieCharacters);
                 }
             }
 
-            for char in value.chars() {
-                if !ALLOWED_CHARACTERS.contains(char) {
-                    return Err(SerwerError::InvalidCookieCharacters);
-                }
-            }
-
-            cookies.set_cookie(key, value);
+            cookies.insert(String::from(name), String::from(value));
         }
 
-        Ok(cookies)
+        Ok(Self { cookies })
     }
 
-    pub fn get_cookie(&self, key: &str) -> Option<String> {
-        self.cookies.get(key).cloned()
+    pub fn get_cookie(&self, key: &str) -> Option<&String> {
+        self.cookies.get(key)
     }
 
-    pub fn get_cookies(&self) -> HashMap<String, String> {
-        self.cookies.to_owned()
-    }
-
-    pub fn set_cookie(&mut self, key: &str, value: &str) {
-        self.cookies.insert(key.to_string(), value.to_string());
-    }
-
-    pub fn set_cookies(&mut self, query_params: HashMap<String, String>) {
-        self.cookies = query_params;
+    pub fn get_cookies(&self) -> &HashMap<String, String> {
+        &self.cookies
     }
 }
 
@@ -79,16 +72,29 @@ mod tests {
         let string = &String::from("id=1");
         let result = Cookies::from_string(string);
 
-        let mut cookies = Cookies::new();
-        cookies.set_cookie("id", "1");
+        let mut hashmap = HashMap::new();
+        hashmap.insert(String::from("id"), String::from("1"));
+        let cookies = Cookies {
+            cookies: hashmap.clone(),
+        };
 
         assert_eq!(result, Ok(cookies.clone()));
 
         let string = &String::from("id=1; name=John");
         let result = Cookies::from_string(string);
 
-        cookies.set_cookie("name", "John");
+        hashmap.insert(String::from("name"), String::from("John"));
+        let cookies = Cookies {
+            cookies: hashmap.clone(),
+        };
 
+        assert_eq!(result, Ok(cookies.clone()));
+
+        hashmap.insert(String::from("name"), String::from("\"John\""));
+        let cookies = Cookies { cookies: hashmap };
+
+        let string = &String::from("id=1; name=\"John\"");
+        let result = Cookies::from_string(string);
         assert_eq!(result, Ok(cookies));
     }
 
@@ -108,7 +114,33 @@ mod tests {
 
         let string = &String::from("id=1;name=John");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookie));
+        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+    }
+
+    #[test]
+    fn test_from_string_invalid_characters() {
+        let string = &String::from("name=Jo,hn");
+        let result = Cookies::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+
+        let string = &String::from("na@me=John");
+        let result = Cookies::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+    }
+
+    #[test]
+    fn test_from_string_invalid_double_quotes() {
+        let string = &String::from("name=\"John");
+        let result = Cookies::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+
+        let string = &String::from("name=John\"");
+        let result = Cookies::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+
+        let string = &String::from("name=\"Joh\"n");
+        let result = Cookies::from_string(string);
+        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
     }
 
     #[test]
@@ -131,24 +163,5 @@ mod tests {
         let string = &String::from("id=1; name=");
         let result = Cookies::from_string(string);
         assert_eq!(result, Err(SerwerError::EmptyCookie));
-    }
-
-    #[test]
-    fn test_set_param() {
-        let mut cookies = Cookies::new();
-        cookies.set_cookie("id", "1");
-
-        assert_eq!(cookies.get_cookie("id"), Some(String::from("1")));
-    }
-
-    #[test]
-    fn test_set_params() {
-        let mut cookies = Cookies::new();
-        cookies.set_cookie("id", "1");
-
-        let mut another_cookies = Cookies::new();
-        another_cookies.set_cookies(cookies.get_cookies());
-
-        assert_eq!(another_cookies.get_cookie("id"), Some(String::from("1")));
     }
 }
