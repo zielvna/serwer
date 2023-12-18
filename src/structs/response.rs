@@ -45,13 +45,12 @@ impl Response {
     }
 
     pub fn set_header(&mut self, name: &str, value: &str) -> &mut Self {
-        self.headers
-            .set_header(String::from(name), String::from(value));
+        self.headers.set_header(name, value);
         self
     }
 
     pub fn set_cookie(&mut self, name: &str, cookie: Cookie) -> &mut Self {
-        self.cookies.set_cookie(String::from(name), cookie);
+        self.cookies.set_cookie(name, cookie);
         self
     }
 

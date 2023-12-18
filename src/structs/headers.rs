@@ -1,5 +1,5 @@
 use crate::enums::SerwerError;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 const NAME_ALLOWED_CHARACTERS: &str =
     "!#$%&'*+-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ^_`abcdefghijklmnopqrstuvwxyz|~";
@@ -9,13 +9,13 @@ const VALUE_ALLOWED_CHARACTERS: &str =
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Headers {
-    headers: HashMap<String, String>,
+    headers: BTreeMap<String, String>,
 }
 
 impl Headers {
     pub fn new() -> Self {
         Self {
-            headers: HashMap::new(),
+            headers: BTreeMap::new(),
         }
     }
 
@@ -40,8 +40,8 @@ impl Headers {
         Ok(())
     }
 
-    pub fn set_header(&mut self, name: String, value: String) {
-        self.headers.insert(name, value);
+    pub fn set_header(&mut self, name: &str, value: &str) {
+        self.headers.insert(String::from(name), String::from(value));
     }
 
     pub fn get_header(&self, name: &str) -> Option<&String> {
@@ -127,5 +127,17 @@ mod tests {
         let result = headers.set_header_from_string(":");
         assert_eq!(result, Err(SerwerError::InvalidHeader));
         assert_eq!(headers.get_header(""), None);
+    }
+
+    #[test]
+    fn test_to_bytes() {
+        let mut headers = Headers::new();
+        headers.set_header("Host", "localhost:80");
+        headers.set_header("Connection", "keep-alive");
+        let result = headers.to_bytes();
+        assert_eq!(
+            String::from_utf8(result).unwrap(),
+            String::from("Connection: keep-alive\r\nHost: localhost:80\r\n")
+        )
     }
 }
