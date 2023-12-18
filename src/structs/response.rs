@@ -32,6 +32,16 @@ impl Response {
         self
     }
 
+    pub fn set_header(&mut self, name: &str, value: &str) -> &mut Self {
+        self.headers.set_header(name, value);
+        self
+    }
+
+    pub fn set_cookie(&mut self, name: &str, cookie: Cookie) -> &mut Self {
+        self.cookies.set_cookie(name, cookie);
+        self
+    }
+
     pub fn set_body(&mut self, body: &str) -> &mut Self {
         self.set_header("Content-Length", body.len().to_string().as_str());
         self.body = body.as_bytes().to_vec();
@@ -44,17 +54,7 @@ impl Response {
         self
     }
 
-    pub fn set_header(&mut self, name: &str, value: &str) -> &mut Self {
-        self.headers.set_header(name, value);
-        self
-    }
-
-    pub fn set_cookie(&mut self, name: &str, cookie: Cookie) -> &mut Self {
-        self.cookies.set_cookie(name, cookie);
-        self
-    }
-
-    pub fn write(self) -> Vec<u8> {
+    pub(crate) fn write(self) -> Vec<u8> {
         let mut response: Vec<u8> = vec![];
 
         response.extend(self.version.to_string().as_bytes());
