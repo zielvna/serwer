@@ -102,10 +102,6 @@ impl Path {
         contains_params
     }
 
-    pub fn get_query_params(&self) -> &QueryParams {
-        &self.query_params
-    }
-
     pub fn get_query_param(&self, key: &str) -> Option<&String> {
         self.query_params.get_query_param(key)
     }

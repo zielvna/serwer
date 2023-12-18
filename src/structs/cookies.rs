@@ -16,6 +16,10 @@ impl Cookies {
     pub fn from_string(string: &str) -> Result<Self, SerwerError> {
         let mut cookies = HashMap::new();
 
+        if string.is_empty() {
+            return Ok(Self { cookies });
+        }
+
         let parts: Vec<&str> = string.split("; ").collect();
 
         for part in parts.iter() {
@@ -50,10 +54,6 @@ impl Cookies {
 
     pub fn get_cookie(&self, key: &str) -> Option<&String> {
         self.cookies.get(key)
-    }
-
-    pub fn get_cookies(&self) -> &HashMap<String, String> {
-        &self.cookies
     }
 }
 
@@ -141,7 +141,12 @@ mod tests {
     fn test_from_string_empty() {
         let string = &String::from("");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookie));
+        assert_eq!(
+            result,
+            Ok(Cookies {
+                cookies: HashMap::new()
+            })
+        );
 
         let string = &String::from("=");
         let result = Cookies::from_string(string);

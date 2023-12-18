@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq, Clone)]
 pub enum SerwerError {
     RequestBufferReadError,
-    InvalidRequestStart,
+    InvalidRequestLine,
     InvalidMethod,
     PathShouldStartWithSlash,
     InvalidPathQueryParam,
@@ -11,6 +11,7 @@ pub enum SerwerError {
     InvalidPathSegmentCharacters,
     PathContainsDuplicateParams,
     InvalidVersion,
+    InvalidRequestHeaders,
     InvalidHeader,
     InvalidHeaderCharacters,
     InvalidCookie,

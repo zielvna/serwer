@@ -1,4 +1,4 @@
-use serwer::{enums::StatusCode, structs::Serwer};
+use serwer::{Serwer, StatusCode};
 
 fn main() {
     let mut serwer = Serwer::new();

@@ -60,7 +60,7 @@ impl Serwer {
     }
 
     fn handle_connection(&self, mut stream: TcpStream) {
-        let mut request = Request::from_stream(&mut stream).unwrap();
+        let mut request = Request::from_stream(&stream).unwrap();
 
         for route in self.routes.iter() {
             let (matches, params) = route.get_path().matches(&request.get_path());
