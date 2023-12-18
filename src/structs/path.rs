@@ -23,7 +23,7 @@ impl Path {
         let segments_string = parts[0];
 
         if !segments_string.starts_with("/") {
-            return Err(SerwerError::PathShouldStartWithSlash);
+            return Err(SerwerError::PathShouldStartWithSlash(String::from(string)));
         }
 
         let mut segments: Vec<Segment> = vec![];
@@ -216,7 +216,10 @@ mod tests {
     fn test_from_string_empty() {
         let string = &String::from("");
         let result = Path::from_string(string);
-        assert_eq!(result, Err(SerwerError::PathShouldStartWithSlash));
+        assert_eq!(
+            result,
+            Err(SerwerError::PathShouldStartWithSlash(string.clone()))
+        );
 
         let string = &String::from("/");
         let result = Path::from_string(string);
@@ -245,7 +248,10 @@ mod tests {
     fn test_from_string_invalid_slashes() {
         let string = &String::from("user");
         let result = Path::from_string(string);
-        assert_eq!(result, Err(SerwerError::PathShouldStartWithSlash));
+        assert_eq!(
+            result,
+            Err(SerwerError::PathShouldStartWithSlash(string.clone()))
+        );
     }
 
     #[test]

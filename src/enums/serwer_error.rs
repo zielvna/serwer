@@ -3,7 +3,7 @@ pub enum SerwerError {
     RequestBufferReadError,
     InvalidRequestLine,
     InvalidMethod,
-    PathShouldStartWithSlash,
+    PathShouldStartWithSlash(String),
     InvalidPathQueryParam,
     InvalidPathQueryParamCharacters,
     PathQueryParamDecodeError,

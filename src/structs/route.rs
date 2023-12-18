@@ -15,7 +15,7 @@ impl Route {
     {
         Ok(Self {
             method,
-            path: Path::from_string(&String::from(path)).unwrap(),
+            path: Path::from_string(&String::from(path))?,
             action: Action::new(action),
         })
     }
