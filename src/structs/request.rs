@@ -132,7 +132,7 @@ impl Request {
     }
 
     pub fn get_param(&self, key: &str) -> Option<String> {
-        self.params.get_param(key)
+        self.params.get_param(key).cloned()
     }
 
     pub fn get_params(&self) -> Params {

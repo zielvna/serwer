@@ -1,5 +1,3 @@
-use std::string::ToString;
-
 #[derive(Debug, PartialEq, Clone)]
 pub enum StatusCode {
     Continue = 100,
