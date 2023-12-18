@@ -12,7 +12,7 @@ pub struct Request {
     version: Version,
     headers: Headers,
     cookies: Cookies,
-    body: Option<String>,
+    body: Vec<u8>,
     params: Params,
 }
 
@@ -76,15 +76,14 @@ impl Request {
             .unwrap_or(&String::from("0"))
             .parse()
             .unwrap_or_default();
-        let mut body: Option<String> = None;
+        let mut body: Vec<u8> = vec![];
 
         if content_length > 0 {
             let mut body_buffer = vec![0; content_length];
             buf_reader
                 .read_exact(&mut body_buffer)
                 .map_err(|_| SerwerError::RequestBufferReadError)?;
-            body =
-                Some(String::from_utf8(body_buffer).map_err(|_| SerwerError::InvalidRequestBody)?);
+            body = body_buffer.to_vec();
         }
 
         Ok(Self {
@@ -122,7 +121,12 @@ impl Request {
         self.cookies.get_cookie(key).cloned()
     }
 
-    pub fn get_body(&self) -> Option<String> {
+    pub fn get_body(&self) -> Result<String, SerwerError> {
+        String::from_utf8(self.body.clone())
+            .map_err(|_| SerwerError::RequestBodyToStringConversionError)
+    }
+
+    pub fn get_body_as_bytes(&self) -> Vec<u8> {
         self.body.to_owned()
     }
 
@@ -161,28 +165,25 @@ mod tests {
 
     #[test]
     fn test_from_stream() {
-        let result = request_from_bytes("GET / HTTP/1.1\r\n\r\n".as_bytes());
+        let result = request_from_bytes("GET / HTTP/1.1\r\n\r\n".as_bytes()).unwrap();
 
-        assert!(result.is_ok());
-        let result = result.unwrap();
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), None);
+        assert_eq!(result.get_body(), Ok(String::from("")));
     }
 
     #[test]
     fn test_from_stream_headers() {
         let result = request_from_bytes(
             "GET / HTTP/1.1\r\nHost: localhost:80\r\nConnection: keep-alive\r\n\r\n".as_bytes(),
-        );
+        )
+        .unwrap();
 
-        assert!(result.is_ok());
-        let result = result.unwrap();
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), None);
+        assert_eq!(result.get_body(), Ok(String::from("")));
         assert_eq!(
             result.get_header("Host"),
             Some(String::from("localhost:80"))
@@ -196,14 +197,13 @@ mod tests {
     #[test]
     fn test_from_stream_cookies() {
         let result =
-            request_from_bytes("GET / HTTP/1.1\r\nCookie: id=1; name=John\r\n\r\n".as_bytes());
+            request_from_bytes("GET / HTTP/1.1\r\nCookie: id=1; name=John\r\n\r\n".as_bytes())
+                .unwrap();
 
-        assert!(result.is_ok());
-        let result = result.unwrap();
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), None);
+        assert_eq!(result.get_body(), Ok(String::from("")));
         assert_eq!(result.get_cookie("id"), Some(String::from("1")));
         assert_eq!(result.get_cookie("name"), Some(String::from("John")));
     }
@@ -212,26 +212,24 @@ mod tests {
     fn test_from_stream_body() {
         let result = request_from_bytes(
             "POST / HTTP/1.1\r\nContent-Length: 11\r\n\r\nHello World".as_bytes(),
-        );
+        )
+        .unwrap();
 
-        assert!(result.is_ok());
-        let result = result.unwrap();
         assert_eq!(result.get_method(), Method::POST);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), Some(String::from("Hello World")));
+        assert_eq!(result.get_body(), Ok(String::from("Hello World")));
     }
 
     #[test]
     fn test_from_stream_query_params() {
-        let result = request_from_bytes("GET /?id=1&name=John HTTP/1.1\r\n\r\n".as_bytes());
+        let result =
+            request_from_bytes("GET /?id=1&name=John HTTP/1.1\r\n\r\n".as_bytes()).unwrap();
 
-        assert!(result.is_ok());
-        let result = result.unwrap();
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/?id=1&name=John");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), None);
+        assert_eq!(result.get_body(), Ok(String::from("")));
         assert_eq!(result.get_query_param("id"), Some(String::from("1")));
         assert_eq!(result.get_query_param("name"), Some(String::from("John")));
     }
@@ -253,13 +251,16 @@ mod tests {
     }
 
     #[test]
-    fn test_from_stream_invalid_request_body() {
+    fn test_from_stream_body_not_utf8() {
         let mut bytes = "POST / HTTP/1.1\r\nContent-Length: 12\r\n\r\nHello World"
             .as_bytes()
             .to_vec();
         bytes.push(128);
-        let result = request_from_bytes(bytes.as_slice());
+        let result = request_from_bytes(bytes.as_slice()).unwrap();
 
-        assert_eq!(result, Err(SerwerError::InvalidRequestBody));
+        assert_eq!(
+            result.get_body(),
+            Err(SerwerError::RequestBodyToStringConversionError)
+        );
     }
 }

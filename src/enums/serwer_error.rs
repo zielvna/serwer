@@ -17,4 +17,5 @@ pub enum SerwerError {
     InvalidCookie,
     InvalidCookieCharacters,
     InvalidRequestBody,
+    RequestBodyToStringConversionError,
 }
