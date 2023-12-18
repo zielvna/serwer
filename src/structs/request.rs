@@ -1,4 +1,4 @@
-use super::{Cookies, Headers, Params, Path};
+use super::{cookie::Cookie, Cookies, Headers, Params, Path};
 use crate::enums::{Method, SerwerError, Version};
 use std::{
     io::{BufRead, BufReader, Read},
@@ -117,7 +117,7 @@ impl Request {
         self.headers.get_header(key).cloned()
     }
 
-    pub fn get_cookie(&self, key: &str) -> Option<String> {
+    pub fn get_cookie(&self, key: &str) -> Option<Cookie> {
         self.cookies.get_cookie(key).cloned()
     }
 
@@ -204,8 +204,14 @@ mod tests {
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
         assert_eq!(result.get_body(), Ok(String::from("")));
-        assert_eq!(result.get_cookie("id"), Some(String::from("1")));
-        assert_eq!(result.get_cookie("name"), Some(String::from("John")));
+        assert_eq!(
+            result.get_cookie("id"),
+            Some(Cookie::from_string("id=1").unwrap())
+        );
+        assert_eq!(
+            result.get_cookie("name"),
+            Some(Cookie::from_string("name=John").unwrap())
+        );
     }
 
     #[test]

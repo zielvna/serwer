@@ -40,8 +40,25 @@ impl Headers {
         Ok(())
     }
 
+    pub fn set_header(&mut self, name: String, value: String) {
+        self.headers.insert(name, value);
+    }
+
     pub fn get_header(&self, name: &str) -> Option<&String> {
         self.headers.get(name)
+    }
+
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut bytes: Vec<u8> = vec![];
+
+        for (name, value) in self.headers.iter() {
+            bytes.extend(name.as_bytes());
+            bytes.extend(b": ");
+            bytes.extend(value.as_bytes());
+            bytes.extend(b"\r\n");
+        }
+
+        bytes
     }
 }
 

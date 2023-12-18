@@ -1,4 +1,5 @@
 mod action;
+pub mod cookie;
 mod cookies;
 mod headers;
 mod params;
@@ -11,6 +12,7 @@ mod segment;
 pub mod serwer;
 
 use action::*;
+pub use cookie::*;
 use cookies::*;
 use headers::*;
 use params::*;

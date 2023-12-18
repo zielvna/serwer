@@ -84,8 +84,8 @@ impl Serwer {
             let mut buffer = Vec::new();
             file.read_to_end(&mut buffer).unwrap();
 
-            let mut response = Response::default();
-            response.set_body(buffer);
+            let mut response = Response::new(&request.get_version());
+            response.set_body_from_bytes(buffer);
             stream.write_all(response.write().as_slice()).unwrap();
         };
     }

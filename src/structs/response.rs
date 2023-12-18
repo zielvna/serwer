@@ -1,120 +1,75 @@
-use std::collections::HashMap;
-
-use crate::enums::StatusCode;
+use super::{cookie::Cookie, cookies::Cookies, headers::Headers};
+use crate::{enums::StatusCode, Version};
 
 #[derive(Debug, Clone)]
 pub struct Response {
-    version: String,
+    version: Version,
     status_code: StatusCode,
     body: Vec<u8>,
-    content_length: usize,
-    headers: HashMap<String, String>,
-    cookies: HashMap<String, String>,
+    headers: Headers,
+    cookies: Cookies,
 }
 
 impl Response {
-    pub fn default() -> Self {
+    pub fn new(version: &Version) -> Self {
         Self {
-            version: String::from("HTTP/1.1"),
+            version: version.clone(),
             status_code: StatusCode::OK,
             body: vec![],
-            content_length: 0,
-            headers: HashMap::new(),
-            cookies: HashMap::new(),
+            headers: Headers::new(),
+            cookies: Cookies::new(),
         }
     }
 
-    pub fn get_version(&self) -> String {
-        self.version.clone()
-    }
-
-    pub fn set_version(&mut self, version: String) -> Self {
-        self.version = version;
-
-        self.clone()
-    }
-
-    pub fn get(&self) -> (StatusCode, Vec<u8>) {
-        (self.status_code.clone(), self.body.clone())
-    }
-
-    pub fn set(&mut self, status_code: StatusCode, body: String) -> Self {
+    pub fn set(&mut self, status_code: StatusCode, body: String) -> &mut Self {
         self.status_code = status_code;
-        self.content_length = body.len();
+        self.set_body(&body);
+        self
+    }
+
+    pub fn set_status_code(&mut self, status_code: StatusCode) -> &mut Self {
+        self.status_code = status_code;
+        self
+    }
+
+    pub fn set_body(&mut self, body: &str) -> &mut Self {
+        self.set_header("Content-Length", body.len().to_string().as_str());
         self.body = body.as_bytes().to_vec();
-
-        self.clone()
+        self
     }
 
-    pub fn get_status_code(&self) -> StatusCode {
-        self.status_code.clone()
-    }
-
-    pub fn set_status_code(&mut self, status_code: StatusCode) -> Self {
-        self.status_code = status_code;
-
-        self.clone()
-    }
-
-    pub fn get_body(&self) -> Vec<u8> {
-        self.body.clone()
-    }
-
-    pub fn set_body(&mut self, body: Vec<u8>) -> Self {
-        self.content_length = body.len();
+    pub fn set_body_from_bytes(&mut self, body: Vec<u8>) -> &mut Self {
+        self.set_header("Content-Length", body.len().to_string().as_str());
         self.body = body;
-
-        self.clone()
+        self
     }
 
-    pub fn set_body_from_string(&mut self, body: String) -> Self {
-        self.content_length = body.len();
-        self.body = body.as_bytes().to_vec();
-
-        self.clone()
+    pub fn set_header(&mut self, name: &str, value: &str) -> &mut Self {
+        self.headers
+            .set_header(String::from(name), String::from(value));
+        self
     }
 
-    pub fn set_header(&mut self, key: &str, value: &str) -> Self {
-        self.headers.insert(String::from(key), String::from(value));
-
-        self.clone()
-    }
-
-    pub fn set_cookie(&mut self, key: &str, value: &str) -> Self {
-        self.cookies.insert(String::from(key), String::from(value));
-
-        self.clone()
+    pub fn set_cookie(&mut self, name: &str, cookie: Cookie) -> &mut Self {
+        self.cookies.set_cookie(String::from(name), cookie);
+        self
     }
 
     pub fn write(self) -> Vec<u8> {
-        let mut response_string = vec![];
+        let mut response: Vec<u8> = vec![];
 
-        let version = &self.version;
-        let status_code = &self.status_code.to_string();
-        response_string.extend(format!("{version} {status_code}\r\n").into_bytes());
+        response.extend(self.version.to_string().as_bytes());
+        response.extend(b" ");
+        response.extend(self.status_code.to_string().as_bytes());
+        response.extend(b"\r\n");
 
-        for (key, value) in self.headers.into_iter() {
-            response_string.extend(format!("{key}: {value}\r\n").as_bytes());
-        }
+        response.extend(self.headers.to_bytes());
 
-        if self.cookies.len() > 0 {
-            response_string.extend("Set-Cookie: ".as_bytes());
+        response.extend(self.cookies.to_bytes());
 
-            for (key, value) in self.cookies.into_iter() {
-                response_string.extend(format!("{key}={value};").as_bytes());
-            }
+        response.extend(b"\r\n");
+        response.extend(self.body);
 
-            response_string.extend("\r\n".as_bytes());
-        }
-
-        if self.content_length > 0 {
-            let content_length = &self.content_length;
-            response_string.extend(format!("Content-Length: {content_length}\r\n").as_bytes());
-        }
-
-        response_string.extend("\r\n".as_bytes());
-        response_string.extend(&self.body);
-
-        response_string
+        response
     }
 }
