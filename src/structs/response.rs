@@ -73,3 +73,54 @@ impl Response {
         response
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_write() {
+        let mut response = Response::new(&Version::HTTP_1_1);
+        response.set(StatusCode::OK, "Hello World".to_string());
+        let result = String::from_utf8(response.write()).unwrap();
+        assert_eq!(
+            result,
+            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+        );
+    }
+
+    #[test]
+    fn test_write_with_status_code() {
+        let mut response = Response::new(&Version::HTTP_1_1);
+        response.set_status_code(StatusCode::NotFound);
+        let result = String::from_utf8(response.write()).unwrap();
+        assert_eq!(result, "HTTP/1.1 404 Not Found\r\n\r\n");
+    }
+
+    #[test]
+    fn test_write_with_header() {
+        let mut response = Response::new(&Version::HTTP_1_1);
+        response.set_header("Content-Type", "text/html");
+        let result = String::from_utf8(response.write()).unwrap();
+        assert_eq!(result, "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n");
+    }
+
+    #[test]
+    fn test_write_with_cookies() {
+        let mut response = Response::new(&Version::HTTP_1_1);
+        response.set_cookie("id", Cookie::new("id", "1"));
+        let result = String::from_utf8(response.write()).unwrap();
+        assert_eq!(result, "HTTP/1.1 200 OK\r\nSet-Cookie: id=1\r\n\r\n");
+    }
+
+    #[test]
+    fn test_write_with_body() {
+        let mut response = Response::new(&Version::HTTP_1_1);
+        response.set_body("Hello World");
+        let result = String::from_utf8(response.write()).unwrap();
+        assert_eq!(
+            result,
+            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+        );
+    }
+}
