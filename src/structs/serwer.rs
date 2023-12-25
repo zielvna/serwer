@@ -161,7 +161,7 @@ impl Serwer {
 
         let found = self.find_and_handle_route(&request, &mut stream);
 
-        if !found {
+        if !found && self.public_path.is_some() {
             self.find_and_handle_file(&request, &mut stream);
         }
     }
