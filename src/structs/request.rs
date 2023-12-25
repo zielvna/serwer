@@ -21,19 +21,17 @@ impl Request {
         let mut buf_reader = BufReader::new(stream);
         let buffer = &mut String::new();
 
-        buf_reader
-            .read_line(buffer)
-            .map_err(|_| SerwerError::RequestBufferReadError)?;
+        buf_reader.read_line(buffer)?;
 
         if !buffer.ends_with("\r\n") {
-            return Err(SerwerError::InvalidRequestLine);
+            return Err(SerwerError::InvalidRequestLine(buffer.clone()));
         }
 
         let parsed_buffer = buffer.trim_end_matches("\r\n");
         let first_line: Vec<&str> = parsed_buffer.split(" ").collect();
 
         if first_line.len() != 3 {
-            return Err(SerwerError::InvalidRequestLine);
+            return Err(SerwerError::InvalidRequestLine(String::from(parsed_buffer)));
         }
 
         let (method_string, path_string, version_string) =
@@ -48,12 +46,10 @@ impl Request {
         loop {
             buffer.clear();
 
-            buf_reader
-                .read_line(buffer)
-                .map_err(|_| SerwerError::RequestBufferReadError)?;
+            buf_reader.read_line(buffer)?;
 
             if !buffer.ends_with("\r\n") {
-                return Err(SerwerError::InvalidRequestHeaders);
+                return Err(SerwerError::HeaderMissingTailingCRLF(buffer.clone()));
             }
 
             let parsed_buffer = buffer.trim_end_matches("\r\n");
@@ -80,9 +76,7 @@ impl Request {
 
         if content_length > 0 {
             let mut body_buffer = vec![0; content_length];
-            buf_reader
-                .read_exact(&mut body_buffer)
-                .map_err(|_| SerwerError::RequestBufferReadError)?;
+            buf_reader.read_exact(&mut body_buffer)?;
             body = body_buffer.to_vec();
         }
 
@@ -122,8 +116,8 @@ impl Request {
     }
 
     pub fn get_body(&self) -> Result<String, SerwerError> {
-        String::from_utf8(self.body.clone())
-            .map_err(|_| SerwerError::RequestBodyToStringConversionError)
+        let string = String::from_utf8(self.body.clone())?;
+        Ok(string)
     }
 
     pub fn get_body_as_bytes(&self) -> Vec<u8> {
@@ -170,7 +164,7 @@ mod tests {
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), Ok(String::from("")));
+        assert_eq!(result.get_body().unwrap(), String::from(""));
     }
 
     #[test]
@@ -183,7 +177,7 @@ mod tests {
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), Ok(String::from("")));
+        assert_eq!(result.get_body().unwrap(), String::from(""));
         assert_eq!(
             result.get_header("Host"),
             Some(String::from("localhost:80"))
@@ -203,7 +197,7 @@ mod tests {
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), Ok(String::from("")));
+        assert_eq!(result.get_body().unwrap(), String::from(""));
         assert_eq!(
             result.get_cookie("id"),
             Some(Cookie::from_string("id=1").unwrap())
@@ -224,7 +218,7 @@ mod tests {
         assert_eq!(result.get_method(), Method::POST);
         assert_eq!(result.get_original_url(), "/");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), Ok(String::from("Hello World")));
+        assert_eq!(result.get_body().unwrap(), String::from("Hello World"));
     }
 
     #[test]
@@ -235,7 +229,7 @@ mod tests {
         assert_eq!(result.get_method(), Method::GET);
         assert_eq!(result.get_original_url(), "/?id=1&name=John");
         assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body(), Ok(String::from("")));
+        assert_eq!(result.get_body().unwrap(), String::from(""));
         assert_eq!(result.get_query_param("id"), Some(String::from("1")));
         assert_eq!(result.get_query_param("name"), Some(String::from("John")));
     }
@@ -243,17 +237,27 @@ mod tests {
     #[test]
     fn test_from_stream_invalid_request_line() {
         let result = request_from_bytes("GET / HTTP/1.1".as_bytes());
-        assert_eq!(result, Err(SerwerError::InvalidRequestLine));
+
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET / HTTP/1.1"
+        ));
 
         let result = request_from_bytes("GET /".as_bytes());
-        assert_eq!(result, Err(SerwerError::InvalidRequestLine));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET /"
+        ));
     }
 
     #[test]
     fn test_from_stream_invalid_request_headers() {
         let result = request_from_bytes("GET / HTTP/1.1\r\nHost: localhost:80".as_bytes());
 
-        assert_eq!(result, Err(SerwerError::InvalidRequestHeaders));
+        assert!(matches!(
+            result,
+            Err(SerwerError::HeaderMissingTailingCRLF(error_string)) if &error_string == "Host: localhost:80"
+        ));
     }
 
     #[test]
@@ -264,9 +268,9 @@ mod tests {
         bytes.push(128);
         let result = request_from_bytes(bytes.as_slice()).unwrap();
 
-        assert_eq!(
+        assert!(matches!(
             result.get_body(),
-            Err(SerwerError::RequestBodyToStringConversionError)
-        );
+            Err(SerwerError::FromUtf8Error(_))
+        ));
     }
 }

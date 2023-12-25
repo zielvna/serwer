@@ -35,14 +35,16 @@ impl Cookie {
     }
 
     pub fn from_string(string: &str) -> Result<Self, SerwerError> {
-        let (name, value) = string.split_once('=').ok_or(SerwerError::InvalidCookie)?;
+        let (name, value) = string
+            .split_once('=')
+            .ok_or(SerwerError::InvalidCookie(String::from(string)))?;
 
         if name.is_empty() || value.is_empty() {
-            return Err(SerwerError::InvalidCookie);
+            return Err(SerwerError::InvalidCookie(String::from(string)));
         }
 
         if !name.chars().all(|c| NAME_ALLOWED_CHARACTERS.contains(c)) {
-            return Err(SerwerError::InvalidCookieCharacters);
+            return Err(SerwerError::InvalidCookieCharacters(String::from(string)));
         }
 
         if value.starts_with("\"") && value.ends_with("\"") {
@@ -50,11 +52,11 @@ impl Cookie {
                 .chars()
                 .all(|c| VALUE_ALLOWED_CHARACTERS.contains(c))
             {
-                return Err(SerwerError::InvalidCookieCharacters);
+                return Err(SerwerError::InvalidCookieCharacters(String::from(string)));
             }
         } else {
             if !value.chars().all(|c| VALUE_ALLOWED_CHARACTERS.contains(c)) {
-                return Err(SerwerError::InvalidCookieCharacters);
+                return Err(SerwerError::InvalidCookieCharacters(String::from(string)));
             }
         }
 
@@ -151,59 +153,78 @@ mod tests {
     fn test_from_string() {
         let string = &String::from("id=1");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Ok(Cookie::new("id", "1")));
+        assert_eq!(result.unwrap(), Cookie::new("id", "1"));
 
         let string = &String::from("name=\"John\"");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Ok(Cookie::new("name", "\"John\"")));
+        assert_eq!(result.unwrap(), Cookie::new("name", "\"John\""));
     }
 
     #[test]
     fn test_from_string_invalid_characters() {
         let string = &String::from("name=Jo,hn");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "name=Jo,hn")
+        );
 
         let string = &String::from("na@me=John");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "na@me=John")
+        );
     }
 
     #[test]
     fn test_from_string_invalid_double_quotes() {
         let string = &String::from("name=\"John");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "name=\"John")
+        );
 
         let string = &String::from("name=John\"");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "name=John\"")
+        );
 
         let string = &String::from("name=\"Joh\"n");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "name=\"Joh\"n")
+        );
     }
 
     #[test]
     fn test_from_string_invalid_cookie() {
         let string = &String::from("=John");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookie));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookie(error_string)) if &error_string == "=John")
+        );
 
         let string = &String::from("name=");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookie));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookie(error_string)) if &error_string == "name=")
+        );
     }
 
     #[test]
     fn test_from_string_empty() {
         let string = &String::from("");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookie));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidCookie(error_string)) if &error_string == ""
+        ));
 
         let string = &String::from("=");
         let result = Cookie::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookie));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookie(error_string)) if &error_string == "=")
+        );
     }
 
     #[test]

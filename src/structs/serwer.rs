@@ -1,5 +1,6 @@
 use super::{Request, Response, Route};
 use crate::enums::Method;
+use crate::utils::macros::unwrap;
 use std::{
     env,
     fs::{self, File},
@@ -16,6 +17,7 @@ pub struct Serwer {
 }
 
 impl Serwer {
+    #[track_caller]
     pub fn new() -> Self {
         Self {
             routes: vec![],
@@ -25,83 +27,123 @@ impl Serwer {
         }
     }
 
+    #[track_caller]
     pub fn get<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::GET, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::GET, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn head<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::HEAD, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::HEAD, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn post<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::POST, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::POST, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn put<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::PUT, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::PUT, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn delete<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::DELETE, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::DELETE, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn connect<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::CONNECT, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::CONNECT, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn options<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::OPTIONS, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::OPTIONS, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn trace<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::TRACE, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::TRACE, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
     pub fn patch<F>(&mut self, path: &'static str, action: F)
     where
         F: Fn(Request, Response) -> Response + 'static,
     {
-        self.routes
-            .push(Route::new(Method::PATCH, path, action).expect("Error while setting route"));
+        self.routes.push(unwrap!(
+            Route::new(Method::PATCH, path, action),
+            "Error while setting route"
+        ));
     }
 
+    #[track_caller]
+    pub fn public(&mut self, path: &str) {
+        let metadata = fs::metadata(&path).expect("Error while reading metadata");
+
+        if !metadata.is_dir() {
+            panic!("Public path is not a directory.");
+        }
+
+        self.public_path = Some(String::from(path));
+    }
+
+    #[track_caller]
     pub fn listen(&mut self, port: u16) {
         self.port = Some(port);
-        self.listener = Some(
-            TcpListener::bind(format!("127.0.0.1:{port}")).expect("Error while binding to a port"),
-        );
+        self.listener = Some(unwrap!(
+            TcpListener::bind(format!("127.0.0.1:{port}")),
+            "Error while binding to a port"
+        ));
 
         for stream in self
             .listener
@@ -172,15 +214,5 @@ impl Serwer {
         } else {
             false
         }
-    }
-
-    pub fn public(&mut self, path: &str) {
-        let metadata = fs::metadata(&path).expect("Error while reading metadata");
-
-        if !metadata.is_dir() {
-            panic!("Public path is not a directory.");
-        }
-
-        self.public_path = Some(String::from(path));
     }
 }

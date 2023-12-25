@@ -25,7 +25,7 @@ impl Method {
             "OPTIONS" => Ok(Method::OPTIONS),
             "TRACE" => Ok(Method::TRACE),
             "PATCH" => Ok(Method::PATCH),
-            _ => Err(SerwerError::InvalidMethod),
+            _ => Err(SerwerError::InvalidMethod(String::from(string))),
         }
     }
 }

@@ -11,14 +11,14 @@ pub enum Version {
 }
 
 impl Version {
-    pub fn from_string(version_string: &str) -> Result<Self, SerwerError> {
-        match version_string {
+    pub fn from_string(string: &str) -> Result<Self, SerwerError> {
+        match string {
             "HTTP/0.9" => Ok(Version::HTTP_0_9),
             "HTTP/1.0" => Ok(Version::HTTP_1_0),
             "HTTP/1.1" => Ok(Version::HTTP_1_1),
             "HTTP/2" => Ok(Version::HTTP_2),
             "HTTP/3" => Ok(Version::HTTP_3),
-            _ => Err(SerwerError::InvalidVersion),
+            _ => Err(SerwerError::InvalidVersion(String::from(string))),
         }
     }
 }

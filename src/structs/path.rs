@@ -23,7 +23,7 @@ impl Path {
         let segments_string = parts[0];
 
         if !segments_string.starts_with("/") {
-            return Err(SerwerError::PathShouldStartWithSlash(String::from(string)));
+            return Err(SerwerError::PathMissingLeadingSlash(String::from(string)));
         }
 
         let mut segments: Vec<Segment> = vec![];
@@ -42,7 +42,9 @@ impl Path {
         for segment in segments.iter() {
             if segment.is_param() {
                 if params.contains(&segment) {
-                    return Err(SerwerError::PathContainsDuplicateParams);
+                    return Err(SerwerError::PathContainsDuplicateParams(String::from(
+                        string,
+                    )));
                 }
 
                 params.push(segment);
@@ -117,47 +119,47 @@ mod tests {
         let string = &String::from("/user");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::new(),
-            })
+            }
         );
 
         let string = &String::from("/user/");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user/"),
                 segments: vec![
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("").unwrap()
                 ],
                 query_params: QueryParams::new(),
-            })
+            }
         );
 
         let string = &String::from("/user/<id>");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user/<id>"),
                 segments: vec![
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("<id>").unwrap()
                 ],
                 query_params: QueryParams::new(),
-            })
+            }
         );
 
         let string = &String::from("/user//<id>");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user//<id>"),
                 segments: vec![
                     Segment::from_string("user").unwrap(),
@@ -165,7 +167,7 @@ mod tests {
                     Segment::from_string("<id>").unwrap()
                 ],
                 query_params: QueryParams::new(),
-            })
+            }
         );
     }
 
@@ -174,17 +176,19 @@ mod tests {
         let string = &String::from("/user?id=1");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user?id=1"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::from_string("id=1").unwrap(),
-            })
+            }
         );
 
         let string = &String::from("/user?");
         let result = Path::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathQueryParam));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidQueryParam(error_string)) if &error_string == "")
+        );
     }
 
     #[test]
@@ -192,23 +196,23 @@ mod tests {
         let string = &String::from("/user#header");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user#header"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::new(),
-            })
+            }
         );
 
         let string = &String::from("/user?id=1#header");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/user?id=1#header"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::from_string("id=1").unwrap(),
-            })
+            }
         );
     }
 
@@ -216,31 +220,31 @@ mod tests {
     fn test_from_string_empty() {
         let string = &String::from("");
         let result = Path::from_string(string);
-        assert_eq!(
+        assert!(matches!(
             result,
-            Err(SerwerError::PathShouldStartWithSlash(string.clone()))
-        );
+            Err(SerwerError::PathMissingLeadingSlash(error_string)) if &error_string == string
+        ));
 
         let string = &String::from("/");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/"),
                 segments: vec![Segment::from_string("").unwrap()],
                 query_params: QueryParams::new(),
-            })
+            }
         );
 
         let string = &String::from("/?id=1");
         let result = Path::from_string(string);
         assert_eq!(
-            result,
-            Ok(Path {
+            result.unwrap(),
+            Path {
                 string: String::from("/?id=1"),
                 segments: vec![Segment::from_string("").unwrap()],
                 query_params: QueryParams::from_string("id=1").unwrap(),
-            })
+            }
         );
     }
 
@@ -248,17 +252,21 @@ mod tests {
     fn test_from_string_invalid_slashes() {
         let string = &String::from("user");
         let result = Path::from_string(string);
-        assert_eq!(
+
+        assert!(matches!(
             result,
-            Err(SerwerError::PathShouldStartWithSlash(string.clone()))
-        );
+            Err(SerwerError::PathMissingLeadingSlash(error_string)) if &error_string == string
+        ));
     }
 
     #[test]
     fn test_from_string_duplicate_params() {
         let string = &String::from("/user/<id>/<id>");
         let result = Path::from_string(string);
-        assert_eq!(result, Err(SerwerError::PathContainsDuplicateParams));
+        assert!(matches!(
+            result,
+            Err(SerwerError::PathContainsDuplicateParams(error_string)) if &error_string == string
+        ));
     }
 
     #[test]

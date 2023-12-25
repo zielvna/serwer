@@ -20,19 +20,21 @@ impl Headers {
     }
 
     pub fn set_header_from_string(&mut self, string: &str) -> Result<(), SerwerError> {
-        let (name, value) = string.split_once(':').ok_or(SerwerError::InvalidHeader)?;
+        let (name, value) = string
+            .split_once(':')
+            .ok_or(SerwerError::InvalidHeader(String::from(string)))?;
         let value = value.trim();
 
         if name.is_empty() {
-            return Err(SerwerError::InvalidHeader);
+            return Err(SerwerError::InvalidHeader(String::from(string)));
         }
 
         if !name.chars().all(|c| NAME_ALLOWED_CHARACTERS.contains(c)) {
-            return Err(SerwerError::InvalidHeaderCharacters);
+            return Err(SerwerError::InvalidHeaderCharacters(String::from(string)));
         }
 
         if !value.chars().all(|c| VALUE_ALLOWED_CHARACTERS.contains(c)) {
-            return Err(SerwerError::InvalidHeaderCharacters);
+            return Err(SerwerError::InvalidHeaderCharacters(String::from(string)));
         }
 
         self.headers.insert(String::from(name), String::from(value));
@@ -70,7 +72,7 @@ mod tests {
     fn test_set_header_from_string() {
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("Host: localhost:80");
-        assert_eq!(result, Ok(()));
+        assert_eq!(result.unwrap(), ());
         assert_eq!(
             headers.get_header("Host"),
             Some(&String::from("localhost:80"))
@@ -78,12 +80,12 @@ mod tests {
 
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("Host:");
-        assert_eq!(result, Ok(()));
+        assert_eq!(result.unwrap(), ());
         assert_eq!(headers.get_header("Host"), Some(&String::from("")));
 
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("Host:   local  host:80  ");
-        assert_eq!(result, Ok(()));
+        assert_eq!(result.unwrap(), ());
         assert_eq!(
             headers.get_header("Host"),
             Some(&String::from("local  host:80"))
@@ -94,12 +96,16 @@ mod tests {
     fn test_set_header_from_string_invalid_characters() {
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("Ho@st: localhost:80");
-        assert_eq!(result, Err(SerwerError::InvalidHeaderCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidHeaderCharacters(error_string)) if &error_string == "Ho@st: localhost:80")
+        );
         assert_eq!(headers.get_header("Ho@st"), None);
 
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("Host: localh€ost:80");
-        assert_eq!(result, Err(SerwerError::InvalidHeaderCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidHeaderCharacters(error_string)) if &error_string == "Host: localh€ost:80")
+        );
         assert_eq!(headers.get_header("Host"), None);
     }
 
@@ -107,12 +113,16 @@ mod tests {
     fn test_set_header_from_string_invalid_header() {
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("Connection keep-alive");
-        assert_eq!(result, Err(SerwerError::InvalidHeader));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidHeader(error_string)) if &error_string == "Connection keep-alive")
+        );
         assert_eq!(headers.get_header("Host"), None);
 
         let mut headers = Headers::new();
         let result = headers.set_header_from_string(": localhost:80");
-        assert_eq!(result, Err(SerwerError::InvalidHeader));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidHeader(error_string)) if &error_string == ": localhost:80")
+        );
         assert_eq!(headers.get_header(""), None);
     }
 
@@ -120,12 +130,16 @@ mod tests {
     fn test_set_header_from_string_empty() {
         let mut headers = Headers::new();
         let result = headers.set_header_from_string("");
-        assert_eq!(result, Err(SerwerError::InvalidHeader));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidHeader(error_string)) if &error_string == "")
+        );
         assert_eq!(headers.get_header(""), None);
 
         let mut headers = Headers::new();
         let result = headers.set_header_from_string(":");
-        assert_eq!(result, Err(SerwerError::InvalidHeader));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidHeader(error_string)) if &error_string == ":")
+        );
         assert_eq!(headers.get_header(""), None);
     }
 

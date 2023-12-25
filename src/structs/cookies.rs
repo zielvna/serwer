@@ -93,40 +93,48 @@ mod tests {
         let mut cookies = Cookies::new();
         cookies.set_cookie("id", Cookie::from_string("id=1").unwrap());
 
-        assert_eq!(result, Ok(cookies.clone()));
+        assert_eq!(result.unwrap(), cookies.clone());
 
         let string = &String::from("id=1; name=John");
         let result = Cookies::from_string(string);
 
         cookies.set_cookie("name", Cookie::from_string("name=John").unwrap());
 
-        assert_eq!(result, Ok(cookies.clone()));
+        assert_eq!(result.unwrap(), cookies.clone());
     }
 
     #[test]
     fn test_from_string_invalid_semicolon() {
         let string = &String::from(";id=1");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == ";id=1")
+        );
 
         let string = &String::from("id=1;");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "id=1;")
+        );
 
         let string = &String::from("id=1;; name=John");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "id=1;")
+        );
 
         let string = &String::from("id=1;name=John");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidCookieCharacters));
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "id=1;name=John")
+        );
     }
 
     #[test]
     fn test_from_string_empty() {
         let string = &String::from("");
         let result = Cookies::from_string(string);
-        assert_eq!(result, Ok(Cookies::new()));
+        assert_eq!(result.unwrap(), Cookies::new());
     }
 
     #[test]

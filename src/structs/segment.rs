@@ -1,4 +1,4 @@
-use crate::enums::SerwerError;
+use crate::{enums::SerwerError, helpers::decode};
 
 const ALLOWED_CHARACTERS: &str =
     "%-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";
@@ -14,54 +14,38 @@ pub struct Segment {
 
 impl Segment {
     pub fn from_string(string: &str) -> Result<Self, SerwerError> {
-        let mut string = string.to_string();
+        let mut parsed_string = string.to_string();
 
-        let is_param = string.starts_with("<") && string.ends_with(">");
+        let is_param = parsed_string.starts_with("<") && parsed_string.ends_with(">");
 
         if is_param {
-            string = string[1..string.len() - 1].to_string();
+            parsed_string = parsed_string[1..parsed_string.len() - 1].to_string();
         }
 
-        if !string.chars().all(|c| ALLOWED_CHARACTERS.contains(c)) {
-            return Err(SerwerError::InvalidPathSegmentCharacters);
+        if !parsed_string
+            .chars()
+            .all(|c| ALLOWED_CHARACTERS.contains(c))
+        {
+            return Err(SerwerError::InvalidPathSegmentCharacters(String::from(
+                string,
+            )));
         }
 
-        string = Self::decode(&string)?;
+        parsed_string = decode(&parsed_string)?;
 
-        if !string
+        if !parsed_string
             .chars()
             .all(|c| ALLOWED_CHARACTERS_WITH_RESERVED.contains(c))
         {
-            return Err(SerwerError::InvalidPathSegmentCharacters);
+            return Err(SerwerError::InvalidPathSegmentCharacters(String::from(
+                string,
+            )));
         }
 
-        Ok(Self { string, is_param })
-    }
-
-    fn decode(string: &str) -> Result<String, SerwerError> {
-        let mut result = String::new();
-        let mut chars = string.chars();
-
-        while let Some(char) = chars.next() {
-            if char == '%' {
-                let mut hex = String::new();
-
-                hex.push(chars.next().ok_or(SerwerError::PathSegmentDecodeError)?);
-                hex.push(chars.next().ok_or(SerwerError::PathSegmentDecodeError)?);
-
-                let decoded = u8::from_str_radix(&hex, 16)
-                    .map_err(|_| SerwerError::PathSegmentDecodeError)?
-                    as char;
-
-                result.push(decoded as char);
-            } else {
-                result.push(char);
-            }
-        }
-
-        let result = result.replace("+", " ");
-
-        Ok(result)
+        Ok(Self {
+            string: parsed_string,
+            is_param,
+        })
     }
 
     pub fn get_string(&self) -> &String {
@@ -82,21 +66,21 @@ mod tests {
         let string = &String::from("user");
         let result = Segment::from_string(string);
         assert_eq!(
-            result,
-            Ok(Segment {
+            result.unwrap(),
+            Segment {
                 string: String::from("user"),
                 is_param: false
-            })
+            }
         );
 
         let string = &String::from("<user>");
         let result = Segment::from_string(string);
         assert_eq!(
-            result,
-            Ok(Segment {
+            result.unwrap(),
+            Segment {
                 string: String::from("user"),
                 is_param: true
-            })
+            }
         );
     }
 
@@ -105,21 +89,21 @@ mod tests {
         let string = &String::from("");
         let result = Segment::from_string(string);
         assert_eq!(
-            result,
-            Ok(Segment {
+            result.unwrap(),
+            Segment {
                 string: String::from(""),
                 is_param: false
-            })
+            }
         );
 
         let string = &String::from("<>");
         let result = Segment::from_string(string);
         assert_eq!(
-            result,
-            Ok(Segment {
+            result.unwrap(),
+            Segment {
                 string: String::from(""),
                 is_param: true
-            })
+            }
         );
     }
 
@@ -128,44 +112,59 @@ mod tests {
         let string = &String::from("us-er");
         let result = Segment::from_string(string);
         assert_eq!(
-            result,
-            Ok(Segment {
+            result.unwrap(),
+            Segment {
                 string: String::from("us-er"),
                 is_param: false
-            })
+            }
         );
 
         let string = &String::from("us%21er");
         let result = Segment::from_string(string);
         assert_eq!(
-            result,
-            Ok(Segment {
+            result.unwrap(),
+            Segment {
                 string: String::from("us!er"),
                 is_param: false
-            })
+            }
         );
 
         let string = &String::from("us%20er");
         let result = Segment::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidPathSegmentCharacters(error_string)) if &error_string == "us%20er"
+        ));
 
         let string = &String::from("us#er");
         let result = Segment::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidPathSegmentCharacters(error_string)) if &error_string == "us#er"
+        ));
     }
 
     #[test]
     fn test_from_string_invalid_param_chars() {
         let string = &String::from("<user");
         let result = Segment::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidPathSegmentCharacters(error_string)) if &error_string == "<user"
+        ));
 
         let string = &String::from("user>");
         let result = Segment::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidPathSegmentCharacters(error_string)) if &error_string == "user>"
+        ));
 
         let string = &String::from("<use>r");
         let result = Segment::from_string(string);
-        assert_eq!(result, Err(SerwerError::InvalidPathSegmentCharacters));
+        assert!(matches!(
+            result,
+            Err(SerwerError::InvalidPathSegmentCharacters(error_string)) if &error_string == "<use>r"
+        ));
     }
 }
