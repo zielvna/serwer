@@ -11,23 +11,14 @@ pub struct ThreadPool {
 }
 
 impl ThreadPool {
-    pub fn new(
-        size: usize,
-        routes: Arc<RwLock<Vec<Route>>>,
-        public_path: Arc<RwLock<Option<String>>>,
-    ) -> Self {
+    pub fn new(size: usize, routes: Arc<RwLock<Vec<Route>>>) -> Self {
         let (sender, receiver) = mpsc::channel();
         let receiver = Arc::new(Mutex::new(receiver));
 
         let mut workers = Vec::with_capacity(size);
 
         for id in 0..size {
-            workers.push(Worker::new(
-                id,
-                Arc::clone(&receiver),
-                Arc::clone(&routes),
-                Arc::clone(&public_path),
-            ));
+            workers.push(Worker::new(id, Arc::clone(&receiver), Arc::clone(&routes)));
         }
 
         Self {

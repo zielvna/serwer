@@ -1,8 +1,7 @@
 use super::{thread_pool::ThreadPool, Request, Response, Route};
 use crate::enums::Method;
-use crate::utils::macros::unwrap;
+use crate::unwrap_error;
 use std::{
-    fs::{self},
     net::TcpListener,
     sync::{Arc, RwLock},
     thread,
@@ -13,7 +12,6 @@ pub struct Serwer {
     routes: Arc<RwLock<Vec<Route>>>,
     listener: Option<TcpListener>,
     thread_pool: Option<ThreadPool>,
-    public_path: Arc<RwLock<Option<String>>>,
 }
 
 impl Serwer {
@@ -23,7 +21,6 @@ impl Serwer {
             routes: Arc::new(RwLock::new(vec![])),
             listener: None,
             thread_pool: None,
-            public_path: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -35,7 +32,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::GET, path, action),
             "Error while setting route"
         ));
@@ -49,7 +46,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::HEAD, path, action),
             "Error while setting route"
         ));
@@ -63,7 +60,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::POST, path, action),
             "Error while setting route"
         ));
@@ -77,7 +74,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::PUT, path, action),
             "Error while setting route"
         ));
@@ -91,7 +88,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::DELETE, path, action),
             "Error while setting route"
         ));
@@ -105,7 +102,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::CONNECT, path, action),
             "Error while setting route"
         ));
@@ -119,7 +116,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::OPTIONS, path, action),
             "Error while setting route"
         ));
@@ -133,7 +130,7 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::TRACE, path, action),
             "Error while setting route"
         ));
@@ -147,26 +144,15 @@ impl Serwer {
         let routes = Arc::clone(&self.routes);
         let mut routes = routes.write().expect("Error while locking routes");
 
-        routes.push(unwrap!(
+        routes.push(unwrap_error!(
             Route::new(Method::PATCH, path, action),
             "Error while setting route"
         ));
     }
 
     #[track_caller]
-    pub fn public(&mut self, path: &str) {
-        let metadata = fs::metadata(&path).expect("Error while reading metadata");
-
-        if !metadata.is_dir() {
-            panic!("Public path is not a directory.");
-        }
-
-        self.public_path = Arc::new(RwLock::new(Some(String::from(path))));
-    }
-
-    #[track_caller]
     pub fn listen(&mut self, port: u16) {
-        self.listener = Some(unwrap!(
+        self.listener = Some(unwrap_error!(
             TcpListener::bind(format!("127.0.0.1:{port}")),
             "Error while binding to a port"
         ));
@@ -176,7 +162,6 @@ impl Serwer {
                 .expect("Error while trying to get available threads")
                 .get(),
             Arc::clone(&self.routes),
-            Arc::clone(&self.public_path),
         ));
 
         for stream in self

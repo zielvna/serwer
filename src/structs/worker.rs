@@ -1,8 +1,8 @@
-use crate::{structs::route::Route, Request, Response, StatusCode, Version};
+use crate::{
+    print_error, structs::route::Route, unwrap_error, Request, Response, StatusCode, Version,
+};
 use std::{
-    env,
-    fs::File,
-    io::{Read, Write},
+    io::Write,
     net::TcpStream,
     sync::{mpsc, Arc, Mutex, RwLock},
     thread,
@@ -19,23 +19,16 @@ impl Worker {
         id: usize,
         receiver: Arc<Mutex<mpsc::Receiver<TcpStream>>>,
         routes: Arc<RwLock<Vec<Route>>>,
-        public_path: Arc<RwLock<Option<String>>>,
     ) -> Self {
         let thread = thread::spawn(move || loop {
             let mut stream = receiver.lock().unwrap().recv().unwrap();
 
-            let response = match Self::handle_stream(&stream, &routes, &public_path) {
-                Some(response) => response,
-                None => {
-                    let mut response = Response::new(&Version::HTTP_1_0);
-                    response.set_status_code(StatusCode::NotFound);
-                    response
-                }
-            };
+            let response = Self::handle_stream(&stream, &routes);
 
-            stream
-                .write_all(response.write().as_slice())
-                .expect("Error while writing response");
+            print_error!(
+                stream.write_all(response.write().as_slice()),
+                "Error while writing response"
+            );
         });
 
         Self {
@@ -44,75 +37,34 @@ impl Worker {
         }
     }
 
-    fn handle_stream(
-        stream: &TcpStream,
-        routes: &Arc<RwLock<Vec<Route>>>,
-        public_path: &Arc<RwLock<Option<String>>>,
-    ) -> Option<Response> {
-        let request = Request::from_stream(&stream).expect("Error while reading request");
+    fn handle_stream(stream: &TcpStream, routes: &Arc<RwLock<Vec<Route>>>) -> Response {
+        let request = Request::from_stream(&stream);
 
-        let response = Self::find_and_handle_route(&request, routes);
+        if let Ok(request) = request {
+            for route in unwrap_error!(routes.read(), "Error while reading routes").iter() {
+                if route.get_method() == &request.get_method() {
+                    let (matches, params) = route.get_path().matches(&request.get_path());
 
-        if response.is_some() {
-            return response;
-        }
+                    if matches {
+                        let mut request = request.clone();
+                        request.set_params(params.unwrap());
 
-        let response = Self::find_and_handle_file(&request, public_path);
-
-        if response.is_some() {
-            return response;
-        }
-
-        None
-    }
-
-    fn find_and_handle_route(
-        request: &Request,
-        routes: &Arc<RwLock<Vec<Route>>>,
-    ) -> Option<Response> {
-        for route in routes.read().expect("Error while reading routes").iter() {
-            if route.get_method() == &request.get_method() {
-                let (matches, params) = route.get_path().matches(&request.get_path());
-
-                if matches {
-                    let mut request = request.clone();
-                    request.set_params(params.expect("Error while setting params to a request"));
-
-                    route.run_action(request);
+                        return route.run_action(request);
+                    }
                 }
             }
-        }
 
-        None
-    }
+            let mut response = Response::new(&Version::HTTP_1_1);
+            response.set_status_code(StatusCode::NotFound);
 
-    fn find_and_handle_file(
-        request: &Request,
-        public_path: &Arc<RwLock<Option<String>>>,
-    ) -> Option<Response> {
-        let path = public_path.read().expect("Error while reading public path");
-
-        if let Some(path) = path.as_ref() {
-            let parsed_path = request.get_path().get_string().replacen("/", "", 1);
-            let file_path = env::current_dir()
-                .expect("Error while getting current directory")
-                .join(path)
-                .join(parsed_path);
-
-            if let Ok(mut file) = File::open(file_path) {
-                let mut buffer = Vec::new();
-                file.read_to_end(&mut buffer)
-                    .expect("Error while reading file");
-
-                let mut response = Response::new(&request.get_version());
-                response.set_body_from_bytes(buffer);
-
-                Some(response)
-            } else {
-                None
-            }
+            response
         } else {
-            None
+            print_error!(request, "Error while reading request");
+
+            let mut response = Response::new(&Version::HTTP_1_1);
+            response.set_status_code(StatusCode::BadRequest);
+
+            response
         }
     }
 }
