@@ -11,7 +11,7 @@ pub struct Route {
 impl Route {
     pub fn new<F>(method: Method, path: &'static str, action: F) -> Result<Self, SerwerError>
     where
-        F: Fn(Request, Response) -> Response + 'static,
+        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
     {
         Ok(Self {
             method,
@@ -37,10 +37,9 @@ impl Route {
 mod tests {
     use super::*;
     use std::{
-        cell::Cell,
         io::Write,
         net::{TcpListener, TcpStream},
-        rc::Rc,
+        sync::{Arc, Mutex},
         thread,
     };
 
@@ -61,11 +60,12 @@ mod tests {
 
     #[test]
     fn test_new_closure_run() {
-        let count = Rc::new(Cell::new(0));
-        let count_clone = Rc::clone(&count);
+        let count = Arc::new(Mutex::new(0));
+        let count_clone = Arc::clone(&count);
 
         let route = Route::new(Method::GET, "/", move |_, res| {
-            count_clone.set(count_clone.get() + 1);
+            let mut count = count_clone.lock().unwrap();
+            *count += 1;
             res
         })
         .unwrap();
@@ -75,6 +75,6 @@ mod tests {
         route.run_action(request.clone());
         route.run_action(request);
 
-        assert_eq!(count.get(), 3);
+        assert_eq!(*count.lock().unwrap(), 3);
     }
 }

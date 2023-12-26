@@ -10,6 +10,8 @@ pub mod response;
 mod route;
 mod segment;
 pub mod serwer;
+mod thread_pool;
+mod worker;
 
 use action::*;
 pub use cookie::*;
@@ -23,3 +25,4 @@ pub use response::*;
 use route::*;
 use segment::*;
 pub use serwer::*;
+use worker::*;

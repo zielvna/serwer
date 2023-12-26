@@ -1,13 +1,13 @@
 use super::{Request, Response};
 
 pub struct Action {
-    func: Box<dyn Fn(Request, Response) -> Response>,
+    func: Box<dyn Fn(Request, Response) -> Response + Send + Sync + 'static>,
 }
 
 impl Action {
     pub fn new<F>(func: F) -> Self
     where
-        F: Fn(Request, Response) -> Response + 'static,
+        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
     {
         Self {
             func: Box::new(func),
