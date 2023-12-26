@@ -1,4 +1,4 @@
-use super::SerwerError;
+use crate::SerwerError;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, PartialEq, Clone)]

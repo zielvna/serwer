@@ -1,4 +1,4 @@
-use super::{Request, Response};
+use crate::{Request, Response};
 
 pub struct Action {
     func: Box<dyn Fn(Request, Response) -> Response + Send + Sync + 'static>,

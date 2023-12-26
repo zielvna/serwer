@@ -1,5 +1,4 @@
-use super::{cookie::Cookie, Cookies, Headers, Params, Path};
-use crate::enums::{Method, SerwerError, Version};
+use crate::{Cookie, Cookies, Headers, Method, Params, Path, SerwerError, Version};
 use std::{
     io::{BufRead, BufReader, Read},
     net::TcpStream,

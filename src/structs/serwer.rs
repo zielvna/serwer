@@ -1,6 +1,4 @@
-use super::{thread_pool::ThreadPool, Request, Response, Route};
-use crate::enums::Method;
-use crate::unwrap_error;
+use crate::{unwrap_error, Method, Request, Response, Route, ThreadPool};
 use std::{
     net::TcpListener,
     sync::{Arc, RwLock},

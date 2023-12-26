@@ -1,5 +1,4 @@
-use super::{cookie::Cookie, cookies::Cookies, headers::Headers};
-use crate::{enums::StatusCode, Version};
+use crate::{Cookie, Cookies, Headers, StatusCode, Version};
 
 #[derive(Debug, Clone)]
 pub struct Response {

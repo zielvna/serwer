@@ -1,4 +1,4 @@
-use crate::enums::SerwerError;
+use crate::SerwerError;
 use std::collections::BTreeMap;
 
 const NAME_ALLOWED_CHARACTERS: &str =

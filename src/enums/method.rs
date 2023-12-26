@@ -1,4 +1,4 @@
-use super::SerwerError;
+use crate::SerwerError;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Method {

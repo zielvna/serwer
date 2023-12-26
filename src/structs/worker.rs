@@ -1,6 +1,4 @@
-use crate::{
-    print_error, structs::route::Route, unwrap_error, Request, Response, StatusCode, Version,
-};
+use crate::{print_error, unwrap_error, Request, Response, Route, StatusCode, Version};
 use std::{
     io::Write,
     net::TcpStream,

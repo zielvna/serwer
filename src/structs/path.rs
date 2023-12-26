@@ -1,5 +1,4 @@
-use super::{Params, QueryParams, Segment};
-use crate::enums::SerwerError;
+use crate::{Params, QueryParams, Segment, SerwerError};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Path {

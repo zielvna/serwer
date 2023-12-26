@@ -1,4 +1,4 @@
-use crate::structs::{Route, Worker};
+use crate::{Route, Worker};
 use std::{
     net::TcpStream,
     sync::{mpsc, Arc, Mutex, RwLock},

@@ -1,4 +1,4 @@
-use crate::{enums::SerwerError, helpers::decode};
+use crate::{decode, SerwerError};
 
 const ALLOWED_CHARACTERS: &str =
     "%-.0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~";

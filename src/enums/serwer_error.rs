@@ -1,5 +1,4 @@
-use core::fmt;
-use std::{io, num, string};
+use std::{fmt, io, num, string};
 
 #[derive(Debug)]
 pub enum SerwerError {

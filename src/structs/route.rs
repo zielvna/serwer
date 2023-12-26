@@ -1,5 +1,4 @@
-use super::{Action, Path, Request, Response};
-use crate::enums::{Method, SerwerError};
+use crate::{Action, Method, Path, Request, Response, SerwerError};
 
 #[derive(Debug)]
 pub struct Route {

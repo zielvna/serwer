@@ -1,7 +1,7 @@
-pub mod method;
-pub mod serwer_error;
-pub mod status_code;
-pub mod version;
+mod method;
+mod serwer_error;
+mod status_code;
+mod version;
 
 pub use method::*;
 pub use serwer_error::*;

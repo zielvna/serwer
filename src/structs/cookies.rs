@@ -1,5 +1,4 @@
-use super::cookie::Cookie;
-use crate::enums::SerwerError;
+use crate::{Cookie, SerwerError};
 use std::collections::BTreeMap;
 
 #[derive(Debug, Clone, PartialEq)]
