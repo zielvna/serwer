@@ -1,4 +1,4 @@
-use crate::{unwrap_error, Method, Request, Response, Route, ThreadPool};
+use crate::{unwrap_error, utils::generate_route, Method, Request, Response, Route, ThreadPool};
 use std::{
     net::TcpListener,
     sync::{Arc, RwLock},
@@ -22,131 +22,15 @@ impl Serwer {
         }
     }
 
-    #[track_caller]
-    pub fn get<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::GET, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn head<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::HEAD, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn post<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::POST, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn put<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::PUT, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn delete<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::DELETE, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn connect<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::CONNECT, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn options<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::OPTIONS, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn trace<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::TRACE, path, action),
-            "Error while setting route"
-        ));
-    }
-
-    #[track_caller]
-    pub fn patch<F>(&mut self, path: &'static str, action: F)
-    where
-        F: Fn(Request, Response) -> Response + Send + Sync + 'static,
-    {
-        let routes = Arc::clone(&self.routes);
-        let mut routes = routes.write().expect("Error while locking routes");
-
-        routes.push(unwrap_error!(
-            Route::new(Method::PATCH, path, action),
-            "Error while setting route"
-        ));
-    }
+    generate_route!(get, Method::GET);
+    generate_route!(head, Method::HEAD);
+    generate_route!(post, Method::POST);
+    generate_route!(put, Method::PUT);
+    generate_route!(delete, Method::DELETE);
+    generate_route!(connect, Method::CONNECT);
+    generate_route!(options, Method::OPTIONS);
+    generate_route!(trace, Method::TRACE);
+    generate_route!(patch, Method::PATCH);
 
     #[track_caller]
     pub fn listen(&mut self, port: u16) {
