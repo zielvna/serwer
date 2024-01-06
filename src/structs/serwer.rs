@@ -1,4 +1,8 @@
-use crate::{unwrap_error, utils::generate_route, Method, Request, Response, Route, ThreadPool};
+use crate::{
+    unwrap_error,
+    utils::{generate_route, unwrap_none},
+    Method, Request, Response, Route, ThreadPool,
+};
 use std::{
     net::TcpListener,
     sync::{Arc, RwLock},
@@ -40,23 +44,26 @@ impl Serwer {
         ));
 
         self.thread_pool = Some(ThreadPool::new(
-            thread::available_parallelism()
-                .expect("Error while trying to get available threads")
-                .get(),
-            Arc::clone(&self.routes),
+            unwrap_error!(
+                thread::available_parallelism(),
+                "Error while trying to get number of available threads"
+            )
+            .get(),
+            &self.routes,
         ));
 
-        for stream in self
-            .listener
-            .as_ref()
-            .expect("Error while listening to a port")
-            .incoming()
+        for stream in unwrap_none!(
+            self.listener.as_ref(),
+            "Error while listening to incoming stream"
+        )
+        .incoming()
         {
-            let stream = stream.expect("Error while reading stream");
-            self.thread_pool
-                .as_ref()
-                .expect("Error while trying to get thread pool")
-                .handle_stream(stream);
+            let stream = unwrap_error!(stream, "Error while reading stream");
+            unwrap_none!(
+                self.thread_pool.as_ref(),
+                "Error while trying to get thread pool"
+            )
+            .handle_stream(stream);
         }
     }
 }

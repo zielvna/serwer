@@ -5,6 +5,13 @@ macro_rules! unwrap_error {
     }};
 }
 
+macro_rules! unwrap_none {
+    ($result:expr, $message:expr) => {{
+        let caller = std::panic::Location::caller().to_string();
+        $result.unwrap_or_else(|| panic!("\n{}\nCalled at {}\n", $message, caller))
+    }};
+}
+
 macro_rules! print_error {
     ($result:expr, $message:expr) => {{
         let caller = std::panic::Location::caller().to_string();
@@ -34,3 +41,4 @@ macro_rules! generate_route {
 pub(crate) use generate_route;
 pub(crate) use print_error;
 pub(crate) use unwrap_error;
+pub(crate) use unwrap_none;

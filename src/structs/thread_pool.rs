@@ -11,7 +11,7 @@ pub struct ThreadPool {
 }
 
 impl ThreadPool {
-    pub fn new(size: usize, routes: Arc<RwLock<Vec<Route>>>) -> Self {
+    pub fn new(size: usize, routes: &Arc<RwLock<Vec<Route>>>) -> Self {
         let (sender, receiver) = mpsc::channel();
         let receiver = Arc::new(Mutex::new(receiver));
 
