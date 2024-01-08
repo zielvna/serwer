@@ -1,4 +1,4 @@
-use crate::{print_error, unwrap_error, Request, Response, Route, StatusCode, Version};
+use crate::{print_error, unwrap_error, Method, Request, Response, Route, StatusCode, Version};
 use std::{
     io::Write,
     net::TcpStream,
@@ -40,7 +40,8 @@ impl Worker {
 
         if let Ok(request) = request {
             for route in unwrap_error!(routes.read(), "Error while reading routes").iter() {
-                if route.get_method() == &request.get_method() {
+                if route.get_method() == &request.get_method() || route.get_method() == &Method::ALL
+                {
                     let (matches, params) = route.get_path().matches(&request.get_path());
 
                     if matches {

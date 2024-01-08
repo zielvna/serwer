@@ -1,7 +1,5 @@
 use crate::{
-    unwrap_error,
-    utils::{generate_route, unwrap_none},
-    Method, Request, Response, Route, ThreadPool,
+    generate_route, unwrap_error, unwrap_none, Method, Request, Response, Route, ThreadPool,
 };
 use std::{
     net::TcpListener,
@@ -32,6 +30,7 @@ impl Serwer {
         }
     }
 
+    generate_route!(all, Method::ALL);
     generate_route!(get, Method::GET);
     generate_route!(head, Method::HEAD);
     generate_route!(post, Method::POST);
