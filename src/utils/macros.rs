@@ -28,7 +28,8 @@ macro_rules! generate_route {
             F: Fn(Request, Response) -> Response + Send + Sync + 'static,
         {
             let routes = Arc::clone(&self.routes);
-            let mut routes = routes.write().expect("Error while locking routes");
+            let mut routes =
+                unwrap_error!(routes.write(), "Failed to lock routes for write access");
 
             routes.push(unwrap_error!(
                 Route::new($method_enum, path, action),

@@ -1,3 +1,4 @@
+use crate::unwrap_error;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 #[derive(Clone)]
@@ -17,12 +18,10 @@ impl<T> Data<T> {
     }
 
     pub fn read(&self) -> RwLockReadGuard<'_, T> {
-        let data = self.data.read().unwrap();
-        data
+        unwrap_error!(self.data.read(), "Failed to lock data for read access")
     }
 
     pub fn write(&self) -> RwLockWriteGuard<'_, T> {
-        let data = self.data.write().unwrap();
-        data
+        unwrap_error!(self.data.write(), "Failed to lock data for write access")
     }
 }

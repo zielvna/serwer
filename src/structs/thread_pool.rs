@@ -1,4 +1,4 @@
-use crate::{Route, Worker};
+use crate::{unwrap_error, Route, Worker};
 use std::{
     net::TcpStream,
     sync::{mpsc, Arc, Mutex, RwLock},
@@ -28,6 +28,6 @@ impl ThreadPool {
     }
 
     pub fn handle_stream(&self, stream: TcpStream) {
-        self.sender.send(stream).unwrap();
+        unwrap_error!(self.sender.send(stream), "Failed to send stream to worker");
     }
 }

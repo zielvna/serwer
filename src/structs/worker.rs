@@ -19,7 +19,10 @@ impl Worker {
         routes: Arc<RwLock<Vec<Route>>>,
     ) -> Self {
         let thread = thread::spawn(move || loop {
-            let mut stream = receiver.lock().unwrap().recv().unwrap();
+            let mut stream = unwrap_error!(
+                unwrap_error!(receiver.lock(), "Failed to lock receiver").recv(),
+                "Failed to receive stream from receiver"
+            );
 
             let response = Self::handle_stream(&stream, &routes);
 
