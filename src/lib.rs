@@ -7,4 +7,4 @@ use structs::*;
 use utils::*;
 
 pub use enums::StatusCode;
-pub use structs::Serwer;
+pub use structs::{Data, Serwer};

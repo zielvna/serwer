@@ -1,6 +1,7 @@
 mod action;
 mod cookie;
 mod cookies;
+mod data;
 mod headers;
 mod params;
 mod path;
@@ -16,6 +17,7 @@ mod worker;
 pub use action::*;
 pub use cookie::*;
 pub use cookies::*;
+pub use data::*;
 pub use headers::*;
 pub use params::*;
 pub use path::*;

@@ -38,6 +38,16 @@ macro_rules! generate_route {
     };
 }
 
+#[macro_export]
+macro_rules! route {
+    (($( $x:ident ),*) $y:expr ) => {
+        {
+            $(let $x = $x.clone();)*
+            $y
+        }
+    };
+}
+
 pub(crate) use generate_route;
 pub(crate) use print_error;
 pub(crate) use unwrap_error;
