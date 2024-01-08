@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>todo</title>
+        <style>
+            body {
+                display: flex;
+                justify-content: center;
+            }
+
+            .title {
+                text-align: center;
+            }
+
+            .task {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .form {
+                display: flex;
+            }
+
+            .description-input {
+                flex-grow: 1;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1 class="title">todo</h1>
+            <div class="tasks"></div>
+            <form class="form">
+                <input class="description-input" type="description" />
+                <button class="add-task-button">add task</button>
+            </form>
+        </div>
+        <script>
+            const tasksElement = document.querySelector(".tasks");
+            const addTaskButtonElement =
+                document.querySelector(".add-task-button");
+            const descriptionInputElement =
+                document.querySelector(".description-input");
+
+            addTaskButtonElement.addEventListener("click", (event) => {
+                event.preventDefault();
+                onSubmit();
+            });
+
+            const loadTasks = async () => {
+                const tasks = await (await fetch("/tasks")).json();
+                tasksElement.innerHTML = tasks
+                    .map((task) => {
+                        let completedText = task.completed
+                            ? "completed"
+                            : "not completed";
+
+                        return `<div class="task">
+                                <span class="task-description">
+                                    ${task.description} - ${completedText}
+                                </span>
+                                <div>
+                                    <button class="task-edit-button" data-id="${task.id}" data-completed="${task.completed}">edit</button>
+                                    <button class="task-delete-button" data-id="${task.id}">delete</button>
+                                </div>
+                            </div>`;
+                    })
+                    .join("");
+
+                const editButtons =
+                    document.querySelectorAll(".task-edit-button");
+                const deleteButtons = document.querySelectorAll(
+                    ".task-delete-button"
+                );
+
+                editButtons.forEach((button) =>
+                    button.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        onEdit(
+                            event.target.dataset.id,
+                            !(event.target.dataset.completed === "true")
+                        );
+                    })
+                );
+
+                deleteButtons.forEach((button) =>
+                    button.addEventListener("click", (event) => {
+                        event.preventDefault();
+                        onDelete(event.target.dataset.id);
+                    })
+                );
+            };
+
+            const onSubmit = async () => {
+                const description = descriptionInputElement.value;
+                await fetch("/task", {
+                    method: "POST",
+                    body: JSON.stringify({ description }),
+                });
+
+                descriptionInputElement.value = "";
+                loadTasks();
+            };
+
+            const onEdit = async (id, completed) => {
+                await fetch(`/task/${id}`, {
+                    method: "PATCH",
+                    body: JSON.stringify({ completed }),
+                });
+
+                loadTasks();
+            };
+
+            const onDelete = async (id) => {
+                await fetch(`/task/${id}`, {
+                    method: "DELETE",
+                });
+
+                loadTasks();
+            };
+
+            loadTasks();
+        </script>
+    </body>
+</html>
