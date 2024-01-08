@@ -12,7 +12,7 @@ impl Params {
         }
     }
 
-    pub fn get_param(&self, key: &str) -> Option<&String> {
+    pub fn param(&self, key: &str) -> Option<&String> {
         self.params.get(key)
     }
 

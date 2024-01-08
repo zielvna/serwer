@@ -23,7 +23,7 @@ fn main() {
         "/task/<id>",
         route! {(todo_list) move |req, mut res| {
             let todo_list = todo_list.read();
-            let id = req.get_param("id").unwrap_or_default();
+            let id = req.param("id").unwrap_or_default();
 
             for task in todo_list.iter() {
                 if task["id"].to_string() == id {
@@ -54,7 +54,7 @@ fn main() {
         "/task",
         route! {(todo_list) move |req, mut res| {
             let mut todo_list = todo_list.write();
-            let mut task = json::parse(req.get_body().unwrap().as_str()).unwrap();
+            let mut task = json::parse(req.body().unwrap().as_str()).unwrap();
 
             if task["description"].is_null() {
                 res.set(StatusCode::BadRequest, (object! {
@@ -64,7 +64,7 @@ fn main() {
                 return res;
             }
 
-            task["id"] = get_id().into();
+            task["id"] = id().into();
             task["completed"] = false.into();
 
             todo_list.push(task);
@@ -81,8 +81,8 @@ fn main() {
         "/task/<id>",
         route! {(todo_list) move |req, mut res| {
             let mut todo_list = todo_list.write();
-            let id = req.get_param("id").unwrap_or_default();
-            let completed = json::parse(req.get_body().unwrap().as_str()).unwrap();
+            let id = req.param("id").unwrap_or_default();
+            let completed = json::parse(req.body().unwrap().as_str()).unwrap();
 
             if completed["completed"].is_null() || !completed["completed"].is_boolean() {
                 res.set(StatusCode::BadRequest, (object! {
@@ -115,7 +115,7 @@ fn main() {
         "/task/<id>",
         route! {(todo_list) move |req, mut res| {
             let mut todo_list = todo_list.write();
-            let id = req.get_param("id").unwrap_or_default();
+            let id = req.param("id").unwrap_or_default();
 
             for (index, task) in todo_list.iter_mut().enumerate() {
                 if task["id"].to_string() == id {
@@ -141,6 +141,6 @@ fn main() {
 
 static COUNTER: AtomicUsize = AtomicUsize::new(1);
 
-fn get_id() -> usize {
+fn id() -> usize {
     COUNTER.fetch_add(1, Ordering::Relaxed)
 }

@@ -2,7 +2,7 @@ use crate::{Params, QueryParams, Segment, SerwerError};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Path {
-    string: String,
+    original_url: String,
     segments: Vec<Segment>,
     query_params: QueryParams,
 }
@@ -51,7 +51,7 @@ impl Path {
         }
 
         Ok(Self {
-            string: String::from(string),
+            original_url: String::from(string),
             segments,
             query_params,
         })
@@ -71,15 +71,15 @@ impl Path {
 
             if segment.is_param() {
                 is_param = true;
-                params.set_param(segment.get_string(), other_segment.get_string());
+                params.set_param(segment.name(), other_segment.name());
             }
 
             if other_segment.is_param() {
                 is_param = true;
-                params.set_param(other_segment.get_string(), segment.get_string());
+                params.set_param(other_segment.name(), segment.name());
             }
 
-            if !is_param && segment.get_string() != other_segment.get_string() {
+            if !is_param && segment.name() != other_segment.name() {
                 return (false, None);
             }
         }
@@ -87,8 +87,8 @@ impl Path {
         (true, Some(params))
     }
 
-    pub fn get_string(&self) -> &String {
-        &self.string
+    pub fn original_url(&self) -> &String {
+        &self.original_url
     }
 
     pub fn contains_params(&self) -> bool {
@@ -103,8 +103,8 @@ impl Path {
         contains_params
     }
 
-    pub fn get_query_param(&self, key: &str) -> Option<&String> {
-        self.query_params.get_query_param(key)
+    pub fn query_param(&self, key: &str) -> Option<&String> {
+        self.query_params.query_param(key)
     }
 }
 
@@ -120,7 +120,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user"),
+                original_url: String::from("/user"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::new(),
             }
@@ -131,7 +131,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user/"),
+                original_url: String::from("/user/"),
                 segments: vec![
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("").unwrap()
@@ -145,7 +145,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user/<id>"),
+                original_url: String::from("/user/<id>"),
                 segments: vec![
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("<id>").unwrap()
@@ -159,7 +159,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user//<id>"),
+                original_url: String::from("/user//<id>"),
                 segments: vec![
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("").unwrap(),
@@ -177,7 +177,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user?id=1"),
+                original_url: String::from("/user?id=1"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::from_string("id=1").unwrap(),
             }
@@ -197,7 +197,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user#header"),
+                original_url: String::from("/user#header"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::new(),
             }
@@ -208,7 +208,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/user?id=1#header"),
+                original_url: String::from("/user?id=1#header"),
                 segments: vec![Segment::from_string("user").unwrap()],
                 query_params: QueryParams::from_string("id=1").unwrap(),
             }
@@ -229,7 +229,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/"),
+                original_url: String::from("/"),
                 segments: vec![Segment::from_string("").unwrap()],
                 query_params: QueryParams::new(),
             }
@@ -240,7 +240,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Path {
-                string: String::from("/?id=1"),
+                original_url: String::from("/?id=1"),
                 segments: vec![Segment::from_string("").unwrap()],
                 query_params: QueryParams::from_string("id=1").unwrap(),
             }

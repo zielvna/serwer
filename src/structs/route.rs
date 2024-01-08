@@ -19,11 +19,11 @@ impl Route {
         })
     }
 
-    pub fn get_method(&self) -> &Method {
+    pub fn method(&self) -> &Method {
         &self.method
     }
 
-    pub fn get_path(&self) -> &Path {
+    pub fn path(&self) -> &Path {
         &self.path
     }
 

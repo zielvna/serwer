@@ -15,7 +15,7 @@ impl Action {
     }
 
     pub fn run(&self, request: Request) -> Response {
-        let response = Response::new(&request.get_version());
+        let response = Response::new(&request.version());
         (self.func)(request, response)
     }
 }

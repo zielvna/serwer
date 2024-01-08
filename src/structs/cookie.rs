@@ -73,39 +73,39 @@ impl Cookie {
         })
     }
 
-    pub fn get_name(&self) -> &String {
+    pub fn name(&self) -> &String {
         &self.name
     }
 
-    pub fn get_value(&self) -> &String {
+    pub fn value(&self) -> &String {
         &self.value
     }
 
-    pub fn get_expires(&self) -> Option<&String> {
+    pub fn expires(&self) -> Option<&String> {
         self.expires.as_ref()
     }
 
-    pub fn get_max_age(&self) -> Option<&u64> {
+    pub fn max_age(&self) -> Option<&u64> {
         self.max_age.as_ref()
     }
 
-    pub fn get_domain(&self) -> Option<&String> {
+    pub fn domain(&self) -> Option<&String> {
         self.domain.as_ref()
     }
 
-    pub fn get_path(&self) -> Option<&String> {
+    pub fn path(&self) -> Option<&String> {
         self.path.as_ref()
     }
 
-    pub fn get_secure(&self) -> bool {
+    pub fn secure(&self) -> bool {
         self.secure
     }
 
-    pub fn get_http_only(&self) -> bool {
+    pub fn http_only(&self) -> bool {
         self.http_only
     }
 
-    pub fn get_same_site(&self) -> Option<&String> {
+    pub fn same_site(&self) -> Option<&String> {
         self.same_site.as_ref()
     }
 
@@ -238,16 +238,16 @@ mod tests {
             .set_http_only(true)
             .set_same_site("Strict");
 
-        assert_eq!(cookie.get_name(), "id");
+        assert_eq!(cookie.name(), "id");
         assert_eq!(
             cookie.expires,
             Some(String::from("Mon, 18 Dec 2023 06:11:00 GMT"))
         );
-        assert_eq!(cookie.max_age, Some(86400));
-        assert_eq!(cookie.domain, Some(String::from("localhost")));
-        assert_eq!(cookie.path, Some(String::from("/")));
-        assert_eq!(cookie.secure, true);
-        assert_eq!(cookie.http_only, true);
-        assert_eq!(cookie.same_site, Some(String::from("Strict")));
+        assert_eq!(cookie.max_age(), Some(&86400));
+        assert_eq!(cookie.domain(), Some(&String::from("localhost")));
+        assert_eq!(cookie.path(), Some(&String::from("/")));
+        assert_eq!(cookie.secure(), true);
+        assert_eq!(cookie.http_only(), true);
+        assert_eq!(cookie.same_site(), Some(&String::from("Strict")));
     }
 }

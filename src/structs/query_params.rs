@@ -60,7 +60,7 @@ impl QueryParams {
         Ok(Self { query_params })
     }
 
-    pub fn get_query_param(&self, key: &str) -> Option<&String> {
+    pub fn query_param(&self, key: &str) -> Option<&String> {
         self.query_params.get(key)
     }
 }

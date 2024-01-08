@@ -40,9 +40,8 @@ impl Worker {
 
         if let Ok(request) = request {
             for route in unwrap_error!(routes.read(), "Error while reading routes").iter() {
-                if route.get_method() == &request.get_method() || route.get_method() == &Method::ALL
-                {
-                    let (matches, params) = route.get_path().matches(&request.get_path());
+                if route.method() == &request.method() || route.method() == &Method::ALL {
+                    let (matches, params) = route.path().matches(&request.path());
 
                     if matches {
                         let mut request = request.clone();

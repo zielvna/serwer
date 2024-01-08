@@ -25,13 +25,13 @@ impl Cookies {
         for part in parts.iter() {
             let cookie = Cookie::from_string(part)?;
 
-            cookies.insert(cookie.get_name().clone(), cookie);
+            cookies.insert(cookie.name().clone(), cookie);
         }
 
         Ok(Self { cookies })
     }
 
-    pub fn get_cookie(&self, key: &str) -> Option<&Cookie> {
+    pub fn cookie(&self, key: &str) -> Option<&Cookie> {
         self.cookies.get(key)
     }
 
@@ -46,30 +46,30 @@ impl Cookies {
             bytes.extend(b"Set-Cookie: ");
             bytes.extend(name.as_bytes());
             bytes.extend(b"=");
-            bytes.extend(cookie.get_value().as_bytes());
-            if let Some(expires) = cookie.get_expires() {
+            bytes.extend(cookie.value().as_bytes());
+            if let Some(expires) = cookie.expires() {
                 bytes.extend(b"; Expires=");
                 bytes.extend(expires.as_bytes());
             }
-            if let Some(max_age) = cookie.get_max_age() {
+            if let Some(max_age) = cookie.max_age() {
                 bytes.extend(b"; Max-Age=");
                 bytes.extend(max_age.to_string().as_bytes());
             }
-            if let Some(domain) = cookie.get_domain() {
+            if let Some(domain) = cookie.domain() {
                 bytes.extend(b"; Domain=");
                 bytes.extend(domain.as_bytes());
             }
-            if let Some(path) = cookie.get_path() {
+            if let Some(path) = cookie.path() {
                 bytes.extend(b"; Path=");
                 bytes.extend(path.as_bytes());
             }
-            if cookie.get_secure() {
+            if cookie.secure() {
                 bytes.extend(b"; Secure");
             }
-            if cookie.get_http_only() {
+            if cookie.http_only() {
                 bytes.extend(b"; HttpOnly");
             }
-            if let Some(same_site) = cookie.get_same_site() {
+            if let Some(same_site) = cookie.same_site() {
                 bytes.extend(b"; SameSite=");
                 bytes.extend(same_site.as_bytes());
             }

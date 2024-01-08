@@ -8,7 +8,7 @@ const ALLOWED_CHARACTERS_WITH_RESERVED: &str =
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Segment {
-    string: String,
+    name: String,
     is_param: bool,
 }
 
@@ -43,13 +43,13 @@ impl Segment {
         }
 
         Ok(Self {
-            string: parsed_string,
+            name: parsed_string,
             is_param,
         })
     }
 
-    pub fn get_string(&self) -> &String {
-        &self.string
+    pub fn name(&self) -> &String {
+        &self.name
     }
 
     pub fn is_param(&self) -> bool {
@@ -68,7 +68,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Segment {
-                string: String::from("user"),
+                name: String::from("user"),
                 is_param: false
             }
         );
@@ -78,7 +78,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Segment {
-                string: String::from("user"),
+                name: String::from("user"),
                 is_param: true
             }
         );
@@ -91,7 +91,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Segment {
-                string: String::from(""),
+                name: String::from(""),
                 is_param: false
             }
         );
@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Segment {
-                string: String::from(""),
+                name: String::from(""),
                 is_param: true
             }
         );
@@ -114,7 +114,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Segment {
-                string: String::from("us-er"),
+                name: String::from("us-er"),
                 is_param: false
             }
         );
@@ -124,7 +124,7 @@ mod tests {
         assert_eq!(
             result.unwrap(),
             Segment {
-                string: String::from("us!er"),
+                name: String::from("us!er"),
                 is_param: false
             }
         );

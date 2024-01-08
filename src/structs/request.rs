@@ -61,13 +61,13 @@ impl Request {
         }
 
         let cookies_string = headers
-            .get_header("Cookie")
+            .header("Cookie")
             .map(|s| s.to_owned())
             .unwrap_or_default();
         let cookies = Cookies::from_string(&cookies_string)?;
 
         let content_length: usize = headers
-            .get_header("Content-Length")
+            .header("Content-Length")
             .unwrap_or(&String::from("0"))
             .parse()
             .unwrap_or_default();
@@ -90,44 +90,44 @@ impl Request {
         })
     }
 
-    pub fn get_method(&self) -> Method {
+    pub fn method(&self) -> Method {
         self.method.to_owned()
     }
 
-    pub fn get_original_url(&self) -> String {
-        self.path.get_string().to_owned()
+    pub fn original_url(&self) -> String {
+        self.path.original_url().to_owned()
     }
 
-    pub fn get_query_param(&self, key: &str) -> Option<String> {
-        self.path.get_query_param(key).cloned()
+    pub fn query_param(&self, key: &str) -> Option<String> {
+        self.path.query_param(key).cloned()
     }
 
-    pub fn get_version(&self) -> Version {
+    pub fn version(&self) -> Version {
         self.version.to_owned()
     }
 
-    pub fn get_header(&self, key: &str) -> Option<String> {
-        self.headers.get_header(key).cloned()
+    pub fn header(&self, key: &str) -> Option<String> {
+        self.headers.header(key).cloned()
     }
 
-    pub fn get_cookie(&self, key: &str) -> Option<Cookie> {
-        self.cookies.get_cookie(key).cloned()
+    pub fn cookie(&self, key: &str) -> Option<Cookie> {
+        self.cookies.cookie(key).cloned()
     }
 
-    pub fn get_body(&self) -> Result<String, SerwerError> {
+    pub fn body(&self) -> Result<String, SerwerError> {
         let string = String::from_utf8(self.body.clone())?;
         Ok(string)
     }
 
-    pub fn get_body_as_bytes(&self) -> Vec<u8> {
+    pub fn body_as_bytes(&self) -> Vec<u8> {
         self.body.to_owned()
     }
 
-    pub fn get_param(&self, key: &str) -> Option<String> {
-        self.params.get_param(key).cloned()
+    pub fn param(&self, key: &str) -> Option<String> {
+        self.params.param(key).cloned()
     }
 
-    pub(crate) fn get_path(&self) -> &Path {
+    pub(crate) fn path(&self) -> &Path {
         &self.path
     }
 
@@ -160,10 +160,10 @@ mod tests {
     fn test_from_stream() {
         let result = request_from_bytes("GET / HTTP/1.1\r\n\r\n".as_bytes()).unwrap();
 
-        assert_eq!(result.get_method(), Method::GET);
-        assert_eq!(result.get_original_url(), "/");
-        assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body().unwrap(), String::from(""));
+        assert_eq!(result.method(), Method::GET);
+        assert_eq!(result.original_url(), "/");
+        assert_eq!(result.version(), Version::HTTP_1_1);
+        assert_eq!(result.body().unwrap(), String::from(""));
     }
 
     #[test]
@@ -173,16 +173,13 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(result.get_method(), Method::GET);
-        assert_eq!(result.get_original_url(), "/");
-        assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body().unwrap(), String::from(""));
+        assert_eq!(result.method(), Method::GET);
+        assert_eq!(result.original_url(), "/");
+        assert_eq!(result.version(), Version::HTTP_1_1);
+        assert_eq!(result.body().unwrap(), String::from(""));
+        assert_eq!(result.header("Host"), Some(String::from("localhost:80")));
         assert_eq!(
-            result.get_header("Host"),
-            Some(String::from("localhost:80"))
-        );
-        assert_eq!(
-            result.get_header("Connection"),
+            result.header("Connection"),
             Some(String::from("keep-alive"))
         );
     }
@@ -193,16 +190,16 @@ mod tests {
             request_from_bytes("GET / HTTP/1.1\r\nCookie: id=1; name=John\r\n\r\n".as_bytes())
                 .unwrap();
 
-        assert_eq!(result.get_method(), Method::GET);
-        assert_eq!(result.get_original_url(), "/");
-        assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body().unwrap(), String::from(""));
+        assert_eq!(result.method(), Method::GET);
+        assert_eq!(result.original_url(), "/");
+        assert_eq!(result.version(), Version::HTTP_1_1);
+        assert_eq!(result.body().unwrap(), String::from(""));
         assert_eq!(
-            result.get_cookie("id"),
+            result.cookie("id"),
             Some(Cookie::from_string("id=1").unwrap())
         );
         assert_eq!(
-            result.get_cookie("name"),
+            result.cookie("name"),
             Some(Cookie::from_string("name=John").unwrap())
         );
     }
@@ -214,10 +211,10 @@ mod tests {
         )
         .unwrap();
 
-        assert_eq!(result.get_method(), Method::POST);
-        assert_eq!(result.get_original_url(), "/");
-        assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body().unwrap(), String::from("Hello World"));
+        assert_eq!(result.method(), Method::POST);
+        assert_eq!(result.original_url(), "/");
+        assert_eq!(result.version(), Version::HTTP_1_1);
+        assert_eq!(result.body().unwrap(), String::from("Hello World"));
     }
 
     #[test]
@@ -225,12 +222,12 @@ mod tests {
         let result =
             request_from_bytes("GET /?id=1&name=John HTTP/1.1\r\n\r\n".as_bytes()).unwrap();
 
-        assert_eq!(result.get_method(), Method::GET);
-        assert_eq!(result.get_original_url(), "/?id=1&name=John");
-        assert_eq!(result.get_version(), Version::HTTP_1_1);
-        assert_eq!(result.get_body().unwrap(), String::from(""));
-        assert_eq!(result.get_query_param("id"), Some(String::from("1")));
-        assert_eq!(result.get_query_param("name"), Some(String::from("John")));
+        assert_eq!(result.method(), Method::GET);
+        assert_eq!(result.original_url(), "/?id=1&name=John");
+        assert_eq!(result.version(), Version::HTTP_1_1);
+        assert_eq!(result.body().unwrap(), String::from(""));
+        assert_eq!(result.query_param("id"), Some(String::from("1")));
+        assert_eq!(result.query_param("name"), Some(String::from("John")));
     }
 
     #[test]
@@ -267,9 +264,6 @@ mod tests {
         bytes.push(128);
         let result = request_from_bytes(bytes.as_slice()).unwrap();
 
-        assert!(matches!(
-            result.get_body(),
-            Err(SerwerError::FromUtf8Error(_))
-        ));
+        assert!(matches!(result.body(), Err(SerwerError::FromUtf8Error(_))));
     }
 }
