@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>auth - sign in, sign up</title>
+        <style>
+            body {
+                display: flex;
+                justify-content: center;
+            }
+
+            .container {
+                display: flex;
+                justify-content: space-between;
+                gap: 16px;
+            }
+
+            .form {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .title,
+            .error {
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1 class="title">auth</h1>
+            <div class="container">
+                <form class="form form--signin">
+                    <input
+                        class="input--username-signin"
+                        placeholder="username"
+                        type="text"
+                    />
+                    <input
+                        class="input--password-signin"
+                        placeholder="password"
+                        type="password"
+                    />
+                    <button class="submit--signin">sign in</button>
+                    <p class="error error--signin"></p>
+                </form>
+                <form class="form form--signup">
+                    <input
+                        class="input--username-signup"
+                        placeholder="username"
+                        type="text"
+                    />
+                    <input
+                        class="input--password-signup"
+                        placeholder="password"
+                        type="password"
+                    />
+                    <button class="submit--signup">sign up</button>
+                    <p class="error error--signup"></p>
+                </form>
+            </div>
+        </div>
+        <script>
+            const signIn = document.querySelector(".form--signin");
+            const signUp = document.querySelector(".form--signup");
+            const signInButton = document.querySelector(".submit--signin");
+            const signUpButton = document.querySelector(".submit--signup");
+            const usernameInputSignIn = document.querySelector(
+                ".input--username-signin"
+            );
+            const passwordInputSignIn = document.querySelector(
+                ".input--password-signin"
+            );
+            const usernameInputSignUp = document.querySelector(
+                ".input--username-signup"
+            );
+            const passwordInputSignUp = document.querySelector(
+                ".input--password-signup"
+            );
+            const signInError = document.querySelector(".error--signin");
+            const signUpError = document.querySelector(".error--signup");
+
+            signInButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                onSignIn();
+            });
+
+            signUpButton.addEventListener("click", (event) => {
+                event.preventDefault();
+                onSignUp();
+            });
+
+            const onSignIn = async () => {
+                const username = usernameInputSignIn.value;
+                const password = passwordInputSignIn.value;
+
+                const response = await fetch("/signin", {
+                    method: "POST",
+                    body: JSON.stringify({ username, password }),
+                });
+                const { status, message } = await response.json();
+
+                if (status === "error") {
+                    signInError.innerHTML = message;
+                } else {
+                    window.location.replace("/home");
+                }
+            };
+
+            const onSignUp = async () => {
+                const username = usernameInputSignUp.value;
+                const password = passwordInputSignUp.value;
+
+                const response = await fetch("/signup", {
+                    method: "POST",
+                    body: JSON.stringify({ username, password }),
+                });
+                const { status, message } = await response.json();
+
+                if (status === "error") {
+                    signUpError.innerHTML = message;
+                } else {
+                    window.location.replace("/home");
+                }
+            };
+        </script>
+    </body>
+</html>

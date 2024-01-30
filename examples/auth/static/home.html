@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>auth - home</title>
+        <style>
+            body {
+                display: flex;
+                justify-content: center;
+            }
+
+            .title,
+            .text {
+                text-align: center;
+            }
+
+            .container {
+                display: flex;
+                justify-content: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <h1 class="title">auth</h1>
+            <p class="text"></p>
+            <div class="container">
+                <button class="submit submit--signout">sign out</button>
+            </div>
+        </div>
+    </body>
+    <script>
+        const welcomeMessageElement = document.querySelector(".text");
+        const signOutButtonElement = document.querySelector(".submit--signout");
+
+        signOutButtonElement.addEventListener("click", async () => {
+            const response = await fetch("/signout");
+            const { status } = await response.json();
+
+            if (status === "success") {
+                window.location.replace("/");
+            }
+        });
+
+        const loadMessage = async () => {
+            const response = await fetch("/user");
+            const { status, message } = await response.json();
+
+            if (status === "success") {
+                welcomeMessageElement.innerHTML = `Welcome, ${message.username}!`;
+            } else {
+                window.location.replace("/");
+            }
+        };
+
+        loadMessage();
+    </script>
+</html>
