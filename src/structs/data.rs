@@ -1,7 +1,6 @@
 use crate::unwrap_error;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-#[derive(Clone)]
 pub struct Data<T> {
     data: Arc<RwLock<T>>,
 }
@@ -23,5 +22,13 @@ impl<T> Data<T> {
 
     pub fn write(&self) -> RwLockWriteGuard<'_, T> {
         unwrap_error!(self.data.write(), "Failed to lock data for write access")
+    }
+}
+
+impl<T> Clone for Data<T> {
+    fn clone(&self) -> Self {
+        Self {
+            data: Arc::clone(&self.data),
+        }
     }
 }
