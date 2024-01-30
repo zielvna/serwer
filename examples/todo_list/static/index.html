@@ -33,16 +33,21 @@
             <h1 class="title">todo</h1>
             <div class="tasks"></div>
             <form class="form">
-                <input class="description-input" type="description" />
-                <button class="add-task-button">add task</button>
+                <input
+                    class="input--description"
+                    placeholder="task description"
+                    type="text"
+                />
+                <button class="button--add-task">add task</button>
             </form>
         </div>
         <script>
             const tasksElement = document.querySelector(".tasks");
             const addTaskButtonElement =
-                document.querySelector(".add-task-button");
-            const descriptionInputElement =
-                document.querySelector(".description-input");
+                document.querySelector(".button--add-task");
+            const descriptionInputElement = document.querySelector(
+                ".input--description"
+            );
 
             addTaskButtonElement.addEventListener("click", (event) => {
                 event.preventDefault();
@@ -58,21 +63,22 @@
                             : "not completed";
 
                         return `<div class="task">
-                                <span class="task-description">
+                                <span class="task__description">
                                     ${task.description} - ${completedText}
                                 </span>
                                 <div>
-                                    <button class="task-edit-button" data-id="${task.id}" data-completed="${task.completed}">edit</button>
-                                    <button class="task-delete-button" data-id="${task.id}">delete</button>
+                                    <button class="task__button--edit" data-id="${task.id}" data-completed="${task.completed}">edit</button>
+                                    <button class="task__button--delete" data-id="${task.id}">delete</button>
                                 </div>
                             </div>`;
                     })
                     .join("");
 
-                const editButtons =
-                    document.querySelectorAll(".task-edit-button");
+                const editButtons = document.querySelectorAll(
+                    ".task__button--edit"
+                );
                 const deleteButtons = document.querySelectorAll(
-                    ".task-delete-button"
+                    ".task__button--delete"
                 );
 
                 editButtons.forEach((button) =>
