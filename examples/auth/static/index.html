@@ -62,38 +62,40 @@
             </div>
         </div>
         <script>
-            const signIn = document.querySelector(".form--signin");
-            const signUp = document.querySelector(".form--signup");
-            const signInButton = document.querySelector(".submit--signin");
-            const signUpButton = document.querySelector(".submit--signup");
-            const usernameInputSignIn = document.querySelector(
+            const signInElement = document.querySelector(".form--signin");
+            const signUpElement = document.querySelector(".form--signup");
+            const signInButtonElement =
+                document.querySelector(".submit--signin");
+            const signUpButtonElement =
+                document.querySelector(".submit--signup");
+            const usernameInputSignInElement = document.querySelector(
                 ".input--username-signin"
             );
-            const passwordInputSignIn = document.querySelector(
+            const passwordInputSignInElement = document.querySelector(
                 ".input--password-signin"
             );
-            const usernameInputSignUp = document.querySelector(
+            const usernameInputSignUpElement = document.querySelector(
                 ".input--username-signup"
             );
-            const passwordInputSignUp = document.querySelector(
+            const passwordInputSignUpElement = document.querySelector(
                 ".input--password-signup"
             );
-            const signInError = document.querySelector(".error--signin");
-            const signUpError = document.querySelector(".error--signup");
+            const signInErrorElement = document.querySelector(".error--signin");
+            const signUpErrorElement = document.querySelector(".error--signup");
 
-            signInButton.addEventListener("click", (event) => {
+            signInButtonElement.addEventListener("click", (event) => {
                 event.preventDefault();
                 onSignIn();
             });
 
-            signUpButton.addEventListener("click", (event) => {
+            signUpButtonElement.addEventListener("click", (event) => {
                 event.preventDefault();
                 onSignUp();
             });
 
             const onSignIn = async () => {
-                const username = usernameInputSignIn.value;
-                const password = passwordInputSignIn.value;
+                const username = usernameInputSignInElement.value;
+                const password = passwordInputSignInElement.value;
 
                 const response = await fetch("/signin", {
                     method: "POST",
@@ -102,15 +104,15 @@
                 const { status, message } = await response.json();
 
                 if (status === "error") {
-                    signInError.innerHTML = message;
+                    signInErrorElement.innerHTML = message;
                 } else {
                     window.location.replace("/home");
                 }
             };
 
             const onSignUp = async () => {
-                const username = usernameInputSignUp.value;
-                const password = passwordInputSignUp.value;
+                const username = usernameInputSignUpElement.value;
+                const password = passwordInputSignUpElement.value;
 
                 const response = await fetch("/signup", {
                     method: "POST",
@@ -119,7 +121,7 @@
                 const { status, message } = await response.json();
 
                 if (status === "error") {
-                    signUpError.innerHTML = message;
+                    signUpErrorElement.innerHTML = message;
                 } else {
                     window.location.replace("/home");
                 }
