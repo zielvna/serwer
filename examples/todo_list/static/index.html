@@ -1,68 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>todo list</title>
-        <style>
-            body {
-                display: flex;
-                justify-content: center;
-            }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>todo list</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+      }
 
-            .title {
-                text-align: center;
-            }
+      .title {
+        text-align: center;
+      }
 
-            .task {
-                display: flex;
-                justify-content: space-between;
-            }
+      .task {
+        display: flex;
+        justify-content: space-between;
+      }
 
-            .form {
-                display: flex;
-            }
+      .form {
+        display: flex;
+      }
 
-            .input--description {
-                flex-grow: 1;
-            }
-        </style>
-    </head>
-    <body>
-        <div>
-            <h1 class="title">todo list</h1>
-            <div class="tasks"></div>
-            <form class="form">
-                <input
-                    class="input--description"
-                    placeholder="task description"
-                    type="text"
-                />
-                <button class="button--add-task">add task</button>
-            </form>
-        </div>
-        <script>
-            const tasksElement = document.querySelector(".tasks");
-            const addTaskButtonElement =
-                document.querySelector(".button--add-task");
-            const descriptionInputElement = document.querySelector(
-                ".input--description"
-            );
+      .input--description {
+        flex-grow: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1 class="title">todo list</h1>
+      <div class="tasks"></div>
+      <form class="form">
+        <input class="input--description" placeholder="task description" type="text" />
+        <button class="button--add-task">add task</button>
+      </form>
+    </div>
+    <script>
+      const tasksElement = document.querySelector('.tasks');
+      const addTaskButtonElement = document.querySelector('.button--add-task');
+      const descriptionInputElement = document.querySelector('.input--description');
 
-            addTaskButtonElement.addEventListener("click", (event) => {
-                event.preventDefault();
-                onSubmit();
-            });
+      addTaskButtonElement.addEventListener('click', (event) => {
+        event.preventDefault();
+        onSubmit();
+      });
 
-            const loadTasks = async () => {
-                const tasks = await (await fetch("/tasks")).json();
-                tasksElement.innerHTML = tasks
-                    .map((task) => {
-                        let completedText = task.completed
-                            ? "completed"
-                            : "not completed";
+      const loadTasks = async () => {
+        const tasks = await (await fetch('/tasks')).json();
+        tasksElement.innerHTML = tasks
+          .map((task) => {
+            let completedText = task.completed ? 'completed' : 'not completed';
 
-                        return `<div class="task">
+            return `<div class="task">
                                 <span class="task__description">
                                     ${task.description} - ${completedText}
                                 </span>
@@ -71,63 +62,56 @@
                                     <button class="task__button--delete" data-id="${task.id}">delete</button>
                                 </div>
                             </div>`;
-                    })
-                    .join("");
+          })
+          .join('');
 
-                const editButtons = document.querySelectorAll(
-                    ".task__button--edit"
-                );
-                const deleteButtons = document.querySelectorAll(
-                    ".task__button--delete"
-                );
+        const editButtons = document.querySelectorAll('.task__button--edit');
+        const deleteButtons = document.querySelectorAll('.task__button--delete');
 
-                editButtons.forEach((button) =>
-                    button.addEventListener("click", (event) => {
-                        event.preventDefault();
-                        onEdit(
-                            event.target.dataset.id,
-                            !(event.target.dataset.completed === "true")
-                        );
-                    })
-                );
+        editButtons.forEach((button) =>
+          button.addEventListener('click', (event) => {
+            event.preventDefault();
+            onEdit(event.target.dataset.id, !(event.target.dataset.completed === 'true'));
+          })
+        );
 
-                deleteButtons.forEach((button) =>
-                    button.addEventListener("click", (event) => {
-                        event.preventDefault();
-                        onDelete(event.target.dataset.id);
-                    })
-                );
-            };
+        deleteButtons.forEach((button) =>
+          button.addEventListener('click', (event) => {
+            event.preventDefault();
+            onDelete(event.target.dataset.id);
+          })
+        );
+      };
 
-            const onSubmit = async () => {
-                const description = descriptionInputElement.value;
-                await fetch("/task", {
-                    method: "POST",
-                    body: JSON.stringify({ description }),
-                });
+      const onSubmit = async () => {
+        const description = descriptionInputElement.value;
+        await fetch('/task', {
+          method: 'POST',
+          body: JSON.stringify({ description }),
+        });
 
-                descriptionInputElement.value = "";
-                loadTasks();
-            };
+        descriptionInputElement.value = '';
+        loadTasks();
+      };
 
-            const onEdit = async (id, completed) => {
-                await fetch(`/task/${id}`, {
-                    method: "PATCH",
-                    body: JSON.stringify({ completed }),
-                });
+      const onEdit = async (id, completed) => {
+        await fetch(`/task/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ completed }),
+        });
 
-                loadTasks();
-            };
+        loadTasks();
+      };
 
-            const onDelete = async (id) => {
-                await fetch(`/task/${id}`, {
-                    method: "DELETE",
-                });
+      const onDelete = async (id) => {
+        await fetch(`/task/${id}`, {
+          method: 'DELETE',
+        });
 
-                loadTasks();
-            };
+        loadTasks();
+      };
 
-            loadTasks();
-        </script>
-    </body>
+      loadTasks();
+    </script>
+  </body>
 </html>
