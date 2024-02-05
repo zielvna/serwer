@@ -39,6 +39,16 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     #[test]
+    fn test_new() {
+        let route = Route::new(Method::GET, "/", |_, res| res).unwrap();
+        assert_eq!(route.method(), &Method::GET);
+        assert_eq!(
+            route.path(),
+            &Path::from_string(&String::from("/")).unwrap()
+        );
+    }
+
+    #[test]
     fn test_new_closure_run() {
         let count = Arc::new(Mutex::new(0));
         let count_clone = Arc::clone(&count);

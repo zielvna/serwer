@@ -200,6 +200,10 @@ mod tests {
         assert_eq!(result.original_url(), "/");
         assert_eq!(result.version(), Version::HTTP_1_1);
         assert_eq!(result.body().unwrap(), String::from("Hello World"));
+        assert_eq!(
+            result.body_as_bytes(),
+            String::from("Hello World").as_bytes()
+        );
     }
 
     #[test]
@@ -216,6 +220,23 @@ mod tests {
     }
 
     #[test]
+    fn test_from_stream_path() {
+        let result = request_from_bytes("GET / HTTP/1.1\r\n\r\n".as_bytes()).unwrap();
+
+        assert_eq!(result.path(), &Path::from_string("/").unwrap());
+    }
+
+    #[test]
+    fn test_from_stream_set_params() {
+        let mut result = request_from_bytes("GET / HTTP/1.1\r\n\r\n".as_bytes()).unwrap();
+        let mut params = Params::new();
+        params.set_param("user", "1");
+        result.set_params(params);
+
+        assert_eq!(result.param("user").unwrap(), String::from("1"));
+    }
+
+    #[test]
     fn test_from_stream_invalid_request_line() {
         let result = request_from_bytes("GET / HTTP/1.1".as_bytes());
 
@@ -224,7 +245,7 @@ mod tests {
             Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET / HTTP/1.1"
         ));
 
-        let result = request_from_bytes("GET /".as_bytes());
+        let result = request_from_bytes("GET /\r\n\r\n".as_bytes());
         assert!(matches!(
             result,
             Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET /"

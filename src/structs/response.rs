@@ -115,10 +115,16 @@ mod tests {
     fn test_write_with_body() {
         let mut response = Response::new(&Version::HTTP_1_1);
         response.set_body("Hello World");
-        let result = String::from_utf8(response.write()).unwrap();
+        let result = String::from_utf8(response.clone().write()).unwrap();
         assert_eq!(
             result,
             "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+        );
+        response.set_body_from_bytes("World Hello".as_bytes().to_vec());
+        let result = String::from_utf8(response.clone().write()).unwrap();
+        assert_eq!(
+            result,
+            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nWorld Hello"
         );
     }
 }
