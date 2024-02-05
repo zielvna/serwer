@@ -1,0 +1,11 @@
+.feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-basis: 100%;
+  text-align: center;
+}
+
+.featureText {
+  margin: 1rem 0 0 0;
+}
