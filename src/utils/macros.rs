@@ -53,3 +53,30 @@ pub(crate) use generate_route;
 pub(crate) use print_error;
 pub(crate) use unwrap_error;
 pub(crate) use unwrap_none;
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_unwrap_error() {
+        let result = unwrap_error!(Ok::<String, String>(String::from("Ok")), "Error message");
+        assert_eq!(result, String::from("Ok"));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_unwrap_error_should_panic() {
+        unwrap_error!(Err::<String, String>(String::from("Err")), "Error message");
+    }
+
+    #[test]
+    fn test_unwrap_none() {
+        let result = unwrap_none!(Some::<String>(String::from("Some")), "Error message");
+        assert_eq!(result, String::from("Some"));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_unwrap_none_should_panic() {
+        unwrap_none!(None, "Error message");
+    }
+}
