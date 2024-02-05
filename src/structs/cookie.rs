@@ -173,6 +173,12 @@ mod tests {
         assert!(
             matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "na@me=John")
         );
+
+        let string = &String::from("name=\"Jo,hn\"");
+        let result = Cookie::from_string(string);
+        assert!(
+            matches!(result, Err(SerwerError::InvalidCookieCharacters(error_string)) if &error_string == "name=\"Jo,hn\"")
+        );
     }
 
     #[test]

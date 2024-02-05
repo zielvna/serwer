@@ -90,26 +90,8 @@ impl fmt::Display for SerwerError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::{
-        io::{BufRead, BufReader, Write},
-        net::{TcpListener, TcpStream},
-        thread,
-    };
-
-    fn stream_from_bytes(data: &[u8]) -> TcpStream {
-        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
-        let address = listener.local_addr().unwrap();
-
-        let buf = data.to_owned();
-
-        thread::spawn(move || {
-            let mut stream = TcpStream::connect(address).unwrap();
-            stream.write_all(&buf).unwrap();
-        });
-
-        let (stream, _) = listener.accept().unwrap();
-        stream
-    }
+    use crate::stream_from_bytes;
+    use std::io::{BufRead, BufReader};
 
     #[test]
     fn test_from() {
