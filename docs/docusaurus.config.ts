@@ -5,7 +5,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config: Config = {
   title: 'Serwer',
   tagline: 'Simplest web framework for Rust',
-  url: 'https://your-docusaurus-site.example.com',
+  url: 'https://serwerframework.vercel.app/',
   baseUrl: '/',
   organizationName: 'zielvna',
   projectName: 'serwer',
@@ -29,8 +29,10 @@ const config: Config = {
       } satisfies Preset.Options,
     ],
   ],
-
   themeConfig: {
+    colorMode: {
+      defaultMode: 'dark',
+    },
     navbar: {
       title: 'Serwer',
       items: [
@@ -48,7 +50,6 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
       links: [
         {
           title: 'Docs',
