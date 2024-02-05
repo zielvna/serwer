@@ -32,3 +32,42 @@ impl<T> Clone for Data<T> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() {
+        let data = Data::new(42);
+        assert_eq!(*data.read(), 42);
+    }
+
+    #[test]
+    fn test_get() {
+        let data = Data::new(42);
+        let data_clone = data.get();
+        assert_eq!(*data_clone.read().unwrap(), 42);
+    }
+
+    #[test]
+    fn test_read() {
+        let data = Data::new(42);
+        assert_eq!(*data.read(), 42);
+    }
+
+    #[test]
+    fn test_write() {
+        let data = Data::new(42);
+        *data.write() = 43;
+        assert_eq!(*data.read(), 43);
+    }
+
+    #[test]
+    fn test_clone() {
+        let data = Data::new(42);
+        let data_clone = data.clone();
+        *data_clone.write() = 43;
+        assert_eq!(*data.read(), 43);
+    }
+}
