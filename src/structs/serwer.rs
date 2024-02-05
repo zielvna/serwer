@@ -1,5 +1,6 @@
 use crate::{
-    generate_route, unwrap_error, unwrap_none, Method, Request, Response, Route, ThreadPool,
+    utils::macros::{generate_route, unwrap_error, unwrap_none},
+    Method, Request, Response, Route, ThreadPool,
 };
 use std::{
     net::TcpListener,

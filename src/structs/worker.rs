@@ -1,4 +1,7 @@
-use crate::{print_error, unwrap_error, Method, Request, Response, Route, StatusCode, Version};
+use crate::{
+    utils::macros::{print_error, unwrap_error},
+    Method, Request, Response, Route, StatusCode, Version,
+};
 use std::{
     io::Write,
     net::TcpStream,

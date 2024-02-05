@@ -1,8 +1,7 @@
 mod helpers;
-mod macros;
+pub mod macros;
 
 pub use helpers::*;
-pub use macros::*;
 
 #[cfg(test)]
 pub mod test_helpers;

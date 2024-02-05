@@ -1,4 +1,4 @@
-use crate::unwrap_error;
+use crate::utils::macros::unwrap_error;
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 pub struct Data<T> {
