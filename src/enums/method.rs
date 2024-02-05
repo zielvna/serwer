@@ -48,3 +48,40 @@ impl ToString for Method {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_string() {
+        assert_eq!(Method::from_string("ALL").unwrap(), Method::ALL);
+        assert_eq!(Method::from_string("GET").unwrap(), Method::GET);
+        assert_eq!(Method::from_string("HEAD").unwrap(), Method::HEAD);
+        assert_eq!(Method::from_string("POST").unwrap(), Method::POST);
+        assert_eq!(Method::from_string("PUT").unwrap(), Method::PUT);
+        assert_eq!(Method::from_string("DELETE").unwrap(), Method::DELETE);
+        assert_eq!(Method::from_string("CONNECT").unwrap(), Method::CONNECT);
+        assert_eq!(Method::from_string("OPTIONS").unwrap(), Method::OPTIONS);
+        assert_eq!(Method::from_string("TRACE").unwrap(), Method::TRACE);
+        assert_eq!(Method::from_string("PATCH").unwrap(), Method::PATCH);
+        assert!(matches!(
+            Method::from_string("INVALID"),
+            Err(SerwerError::InvalidMethod(error_string)) if &error_string == "INVALID"
+        ));
+    }
+
+    #[test]
+    fn test_to_string() {
+        assert_eq!(Method::ALL.to_string(), "ALL");
+        assert_eq!(Method::GET.to_string(), "GET");
+        assert_eq!(Method::HEAD.to_string(), "HEAD");
+        assert_eq!(Method::POST.to_string(), "POST");
+        assert_eq!(Method::PUT.to_string(), "PUT");
+        assert_eq!(Method::DELETE.to_string(), "OPTIONS");
+        assert_eq!(Method::CONNECT.to_string(), "OPTIONS");
+        assert_eq!(Method::OPTIONS.to_string(), "OPTIONS");
+        assert_eq!(Method::TRACE.to_string(), "TRACE");
+        assert_eq!(Method::PATCH.to_string(), "PATCH");
+    }
+}

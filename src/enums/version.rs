@@ -34,3 +34,30 @@ impl ToString for Version {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_string() {
+        assert_eq!(Version::from_string("HTTP/0.9").unwrap(), Version::HTTP_0_9);
+        assert_eq!(Version::from_string("HTTP/1.0").unwrap(), Version::HTTP_1_0);
+        assert_eq!(Version::from_string("HTTP/1.1").unwrap(), Version::HTTP_1_1);
+        assert_eq!(Version::from_string("HTTP/2").unwrap(), Version::HTTP_2);
+        assert_eq!(Version::from_string("HTTP/3").unwrap(), Version::HTTP_3);
+        assert!(matches!(
+            Version::from_string("HTTP/1.2"),
+            Err(SerwerError::InvalidVersion(error_string)) if &error_string == "HTTP/1.2"
+        ));
+    }
+
+    #[test]
+    fn test_to_string() {
+        assert_eq!(Version::HTTP_0_9.to_string(), "HTTP/0.9");
+        assert_eq!(Version::HTTP_1_0.to_string(), "HTTP/1.0");
+        assert_eq!(Version::HTTP_1_1.to_string(), "HTTP/1.1");
+        assert_eq!(Version::HTTP_2.to_string(), "HTTP/2");
+        assert_eq!(Version::HTTP_3.to_string(), "HTTP/3");
+    }
+}

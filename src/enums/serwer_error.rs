@@ -69,13 +69,13 @@ impl fmt::Display for SerwerError {
                 write!(f, r#"Invalid version: "{}""#, version)
             }
             SerwerError::HeaderMissingTailingCRLF(header) => {
-                write!(f, r#"Header missing tailing CRLF: {}"#, header)
+                write!(f, r#"Header missing tailing CRLF: "{}""#, header)
             }
-            SerwerError::InvalidHeader(header) => write!(f, r#"Invalid header: "{}"#, header),
+            SerwerError::InvalidHeader(header) => write!(f, r#"Invalid header: "{}""#, header),
             SerwerError::InvalidHeaderCharacters(header) => {
                 write!(f, r#"Invalid header characters: "{}""#, header)
             }
-            SerwerError::InvalidCookie(cookie) => write!(f, r#"Invalid cookie: "{}"#, cookie),
+            SerwerError::InvalidCookie(cookie) => write!(f, r#"Invalid cookie: "{}""#, cookie),
             SerwerError::InvalidCookieCharacters(cookie) => {
                 write!(f, r#"Invalid cookie characters: "{}""#, cookie)
             }
@@ -84,5 +84,147 @@ impl fmt::Display for SerwerError {
             SerwerError::ParseIntError(error) => write!(f, "Parse int error: {}", error),
             SerwerError::FromUtf8Error(error) => write!(f, "From utf8 error: {}", error),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::{
+        io::{BufRead, BufReader, Write},
+        net::{TcpListener, TcpStream},
+        thread,
+    };
+
+    fn stream_from_bytes(data: &[u8]) -> TcpStream {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let address = listener.local_addr().unwrap();
+
+        let buf = data.to_owned();
+
+        thread::spawn(move || {
+            let mut stream = TcpStream::connect(address).unwrap();
+            stream.write_all(&buf).unwrap();
+        });
+
+        let (stream, _) = listener.accept().unwrap();
+        stream
+    }
+
+    #[test]
+    fn test_from() {
+        let mut buffer = BufReader::new(stream_from_bytes(&[255]));
+        let string = &mut String::from("");
+
+        assert!(matches!(
+            SerwerError::from(buffer.read_line(string).unwrap_err()),
+            SerwerError::IoError(error) if error.to_string() == "stream did not contain valid UTF-8"
+        ));
+
+        assert!(matches!(
+            SerwerError::from(u8::from_str_radix(&"a", 10).unwrap_err()),
+            SerwerError::ParseIntError(error) if error.to_string() == "invalid digit found in string"
+        ));
+
+        assert!(matches!(
+            SerwerError::from(String::from_utf8(vec![255]).unwrap_err()),
+            SerwerError::FromUtf8Error(error) if error.to_string() == "invalid utf-8 sequence of 1 bytes from index 0"
+        ));
+    }
+
+    #[test]
+    fn test_display() {
+        assert_eq!(
+            SerwerError::RequestBufferReadError.to_string(),
+            "Error while reading request buffer"
+        );
+
+        assert_eq!(
+            SerwerError::InvalidRequestLine(String::from("GET / HTTP/1.1")).to_string(),
+            r#"Invalid request line: "GET / HTTP/1.1""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidMethod(String::from("GET")).to_string(),
+            r#"Invalid method: "GET""#
+        );
+
+        assert_eq!(
+            SerwerError::PathMissingLeadingSlash(String::from("path")).to_string(),
+            r#"Path missing leading slash: "path""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidQueryParam(String::from("query_param")).to_string(),
+            r#"Invalid query param: "query_param""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidQueryParamCharacters(String::from("query_param")).to_string(),
+            r#"Invalid query param characters: "query_param""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidPathSegmentCharacters(String::from("path_segment")).to_string(),
+            r#"Invalid path segment characters: "path_segment""#
+        );
+
+        assert_eq!(
+            SerwerError::PathContainsDuplicateParams(String::from("path")).to_string(),
+            r#"Path contains duplicate params: "path""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidVersion(String::from("version")).to_string(),
+            r#"Invalid version: "version""#
+        );
+
+        assert_eq!(
+            SerwerError::HeaderMissingTailingCRLF(String::from("header")).to_string(),
+            r#"Header missing tailing CRLF: "header""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidHeader(String::from("header")).to_string(),
+            r#"Invalid header: "header""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidHeaderCharacters(String::from("header")).to_string(),
+            r#"Invalid header characters: "header""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidCookie(String::from("cookie")).to_string(),
+            r#"Invalid cookie: "cookie""#
+        );
+
+        assert_eq!(
+            SerwerError::InvalidCookieCharacters(String::from("cookie")).to_string(),
+            r#"Invalid cookie characters: "cookie""#
+        );
+
+        assert_eq!(
+            SerwerError::DecodeError(String::from("string")).to_string(),
+            r#"Decode error: "string""#
+        );
+
+        let mut buffer = BufReader::new(stream_from_bytes(&[255]));
+        let string = &mut String::from("");
+
+        assert_eq!(
+            SerwerError::IoError(buffer.read_line(string).unwrap_err()).to_string(),
+            "IO error: stream did not contain valid UTF-8"
+        );
+
+        assert_eq!(
+            SerwerError::ParseIntError(u8::from_str_radix(&"a", 10).unwrap_err()).to_string(),
+            "Parse int error: invalid digit found in string"
+        );
+
+        assert_eq!(
+            SerwerError::FromUtf8Error(String::from_utf8(vec![255]).unwrap_err()).to_string(),
+            "From utf8 error: invalid utf-8 sequence of 1 bytes from index 0"
+        );
     }
 }

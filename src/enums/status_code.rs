@@ -142,3 +142,176 @@ impl ToString for StatusCode {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn to_string() {
+        assert_eq!(StatusCode::Continue.to_string(), "100 Continue");
+        assert_eq!(
+            StatusCode::SwitchingProtocols.to_string(),
+            "101 Switching Protocols"
+        );
+        assert_eq!(StatusCode::Processing.to_string(), "101 Processing");
+        assert_eq!(StatusCode::EarlyHints.to_string(), "104 Early Hints");
+        assert_eq!(StatusCode::OK.to_string(), "200 OK");
+        assert_eq!(StatusCode::Created.to_string(), "201 Created");
+        assert_eq!(StatusCode::Accepted.to_string(), "202 Accepted");
+        assert_eq!(
+            StatusCode::NonAuthoritativeInformation.to_string(),
+            "203 Non-Authoritative Information"
+        );
+        assert_eq!(StatusCode::NoContent.to_string(), "204 No Content");
+        assert_eq!(StatusCode::ResetContent.to_string(), "205 Reset Content");
+        assert_eq!(
+            StatusCode::PartialContent.to_string(),
+            "206 Partial Content"
+        );
+        assert_eq!(StatusCode::MultiStatus.to_string(), "207 Multi-Status");
+        assert_eq!(
+            StatusCode::AlreadyReported.to_string(),
+            "208 Already Reported"
+        );
+        assert_eq!(StatusCode::IMUsed.to_string(), "226 IM Used");
+        assert_eq!(
+            StatusCode::MultipleChoices.to_string(),
+            "300 Multiple Choices"
+        );
+        assert_eq!(
+            StatusCode::MovedPermanently.to_string(),
+            "301 Moved Permanently"
+        );
+        assert_eq!(StatusCode::Found.to_string(), "302 Found");
+        assert_eq!(StatusCode::SeeOther.to_string(), "303 See Other");
+        assert_eq!(StatusCode::NotModified.to_string(), "304 Not Modified");
+        assert_eq!(StatusCode::UseProxy.to_string(), "305 Use Proxy");
+        assert_eq!(
+            StatusCode::TemporaryRedirect.to_string(),
+            "307 Temporary Redirect"
+        );
+        assert_eq!(
+            StatusCode::PermanentRedirect.to_string(),
+            "308 Permanent Redirect"
+        );
+        assert_eq!(StatusCode::BadRequest.to_string(), "400 Bad Request");
+        assert_eq!(StatusCode::Unauthorized.to_string(), "401 Unauthorized");
+        assert_eq!(
+            StatusCode::PaymentRequired.to_string(),
+            "402 Payment Required"
+        );
+        assert_eq!(StatusCode::Forbidden.to_string(), "403 Forbidden");
+        assert_eq!(StatusCode::NotFound.to_string(), "404 Not Found");
+        assert_eq!(
+            StatusCode::MethodNotAllowed.to_string(),
+            "405 Method Not Allowed"
+        );
+        assert_eq!(StatusCode::NotAcceptable.to_string(), "406 Not Acceptable");
+        assert_eq!(
+            StatusCode::ProxyAuthenticationRequired.to_string(),
+            "407 Proxy Authentication Required"
+        );
+        assert_eq!(
+            StatusCode::RequestTimeout.to_string(),
+            "408 Request Timeout"
+        );
+        assert_eq!(StatusCode::Conflict.to_string(), "409 Conflict");
+        assert_eq!(StatusCode::Gone.to_string(), "410 Gone");
+        assert_eq!(
+            StatusCode::LengthRequired.to_string(),
+            "411 Length Required"
+        );
+        assert_eq!(
+            StatusCode::PreconditionFailed.to_string(),
+            "412 Precondition Failed"
+        );
+        assert_eq!(
+            StatusCode::PayloadTooLarge.to_string(),
+            "413 Payload Too Large"
+        );
+        assert_eq!(StatusCode::URITooLong.to_string(), "414 URI Too Long");
+        assert_eq!(
+            StatusCode::UnsupportedMediaType.to_string(),
+            "415 Unsupported Media Type"
+        );
+        assert_eq!(
+            StatusCode::RangeNotSatisfiable.to_string(),
+            "416 Range Not Satisfiable"
+        );
+        assert_eq!(
+            StatusCode::ExpectationFailed.to_string(),
+            "417 Expectation Failed"
+        );
+        assert_eq!(StatusCode::ImATeapot.to_string(), "418 I'm a teapot");
+        assert_eq!(
+            StatusCode::MisdirectedRequest.to_string(),
+            "421 Misdirected Request"
+        );
+        assert_eq!(
+            StatusCode::UnprocessableEntity.to_string(),
+            "422 Unprocessable Entity"
+        );
+        assert_eq!(StatusCode::Locked.to_string(), "423 Locked");
+        assert_eq!(
+            StatusCode::FailedDependency.to_string(),
+            "424 Failed Dependency"
+        );
+        assert_eq!(StatusCode::TooEarly.to_string(), "425 Too Early");
+        assert_eq!(
+            StatusCode::UpgradeRequired.to_string(),
+            "426 Upgrade Required"
+        );
+        assert_eq!(
+            StatusCode::PreconditionRequired.to_string(),
+            "428 Precondition Required"
+        );
+        assert_eq!(
+            StatusCode::TooManyRequests.to_string(),
+            "429 Too Many Requests"
+        );
+        assert_eq!(
+            StatusCode::RequestHeaderFieldsTooLarge.to_string(),
+            "431 Request Header Fields Too Large"
+        );
+        assert_eq!(
+            StatusCode::UnavailableForLegalReasons.to_string(),
+            "451 Unavailable For Legal Reasons"
+        );
+        assert_eq!(
+            StatusCode::InternalServerError.to_string(),
+            "500 Internal Server Error"
+        );
+        assert_eq!(
+            StatusCode::NotImplemented.to_string(),
+            "501 Not Implemented"
+        );
+        assert_eq!(StatusCode::BadGateway.to_string(), "502 Bad Gateway");
+        assert_eq!(
+            StatusCode::ServiceUnavailable.to_string(),
+            "503 Service Unavailable"
+        );
+        assert_eq!(
+            StatusCode::GatewayTimeout.to_string(),
+            "504 Gateway Timeout"
+        );
+        assert_eq!(
+            StatusCode::HTTPVersionNotSupported.to_string(),
+            "505 HTTP Version Not Supported"
+        );
+        assert_eq!(
+            StatusCode::VariantAlsoNegotiates.to_string(),
+            "506 Variant Also Negotiates"
+        );
+        assert_eq!(
+            StatusCode::InsufficientStorage.to_string(),
+            "507 Insufficient Storage"
+        );
+        assert_eq!(StatusCode::LoopDetected.to_string(), "508 Loop Detected");
+        assert_eq!(StatusCode::NotExtended.to_string(), "510 Not Extended");
+        assert_eq!(
+            StatusCode::NetworkAuthenticationRequired.to_string(),
+            "511 Network Authentication Required"
+        );
+    }
+}
