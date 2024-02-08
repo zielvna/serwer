@@ -31,3 +31,43 @@ impl ThreadPool {
         unwrap_error!(self.sender.send(stream), "Failed to send stream to worker");
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{stream_from_bytes, Method};
+    use std::{sync::RwLock, thread, time::Duration};
+
+    #[test]
+    fn test_new() {
+        let routes = Arc::new(RwLock::new(vec![]));
+        let pool = ThreadPool::new(4, &routes);
+        assert_eq!(pool._workers.len(), 4);
+    }
+
+    #[test]
+    fn test_handle_stream() {
+        let count = Arc::new(Mutex::new(0));
+        let count_clone = Arc::clone(&count);
+
+        let route = Route::new(Method::GET, "/", move |_, res| {
+            let mut count = count_clone.lock().unwrap();
+            *count += 1;
+            res
+        })
+        .unwrap();
+        let routes = Arc::new(RwLock::new(vec![route]));
+        let pool = ThreadPool::new(4, &routes);
+
+        let stream = stream_from_bytes(b"GET / HTTP/1.1\r\n\r\n");
+        pool.handle_stream(stream);
+        let stream = stream_from_bytes(b"GET / HTTP/1.1\r\n\r\n");
+        pool.handle_stream(stream);
+        let stream = stream_from_bytes(b"GET / HTTP/1.1\r\n\r\n");
+        pool.handle_stream(stream);
+
+        thread::sleep(Duration::from_millis(100));
+
+        assert_eq!(*count.lock().unwrap(), 3);
+    }
+}
