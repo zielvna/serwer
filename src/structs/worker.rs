@@ -72,3 +72,73 @@ impl Worker {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::stream_from_bytes;
+
+    #[test]
+    fn test_new() {
+        let routes = Arc::new(RwLock::new(vec![]));
+        let (_, receiver) = mpsc::channel();
+        let receiver = Arc::new(Mutex::new(receiver));
+
+        let worker = Worker::new(0, receiver, routes);
+        assert_eq!(worker._id, 0);
+    }
+
+    #[test]
+    fn test_handle_stream() {
+        let route = Route::new(Method::GET, "/", move |_, mut res| {
+            res.set(StatusCode::OK, "Hello World".to_string());
+            res
+        })
+        .unwrap();
+        let routes = Arc::new(RwLock::new(vec![route]));
+
+        let stream = stream_from_bytes(b"GET / HTTP/1.1\r\n\r\n");
+        let response = Worker::handle_stream(&stream, &routes);
+
+        assert_eq!(
+            String::from_utf8_lossy(response.write().as_slice()),
+            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+        );
+    }
+
+    #[test]
+    fn test_handle_stream_bad_request() {
+        let route = Route::new(Method::GET, "/", move |_, mut res| {
+            res.set(StatusCode::OK, "Hello World".to_string());
+            res
+        })
+        .unwrap();
+        let routes = Arc::new(RwLock::new(vec![route]));
+
+        let stream = stream_from_bytes(b"GET /\r\n\r\n");
+        let response = Worker::handle_stream(&stream, &routes);
+
+        assert_eq!(
+            String::from_utf8_lossy(response.write().as_slice()),
+            "HTTP/1.1 400 Bad Request\r\n\r\n"
+        );
+    }
+
+    #[test]
+    fn test_handle_stream_not_found() {
+        let route = Route::new(Method::GET, "/hello", move |_, mut res| {
+            res.set(StatusCode::OK, "Hello World".to_string());
+            res
+        })
+        .unwrap();
+        let routes = Arc::new(RwLock::new(vec![route]));
+
+        let stream = stream_from_bytes(b"GET / HTTP/1.1\r\n\r\n");
+        let response = Worker::handle_stream(&stream, &routes);
+
+        assert_eq!(
+            String::from_utf8_lossy(response.write().as_slice()),
+            "HTTP/1.1 404 Not Found\r\n\r\n"
+        );
+    }
+}
