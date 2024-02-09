@@ -61,17 +61,19 @@ impl Request {
         }
 
         let cookies_string = headers
-            .header("Cookie")
+            .header("cookie")
             .map(|s| s.to_owned())
             .unwrap_or_default();
         let cookies = Cookies::from_string(&cookies_string)?;
 
         let content_length: usize = headers
-            .header("Content-Length")
+            .header("content-length")
             .unwrap_or(&String::from("0"))
             .parse()
             .unwrap_or_default();
         let mut body: Vec<u8> = vec![];
+
+        println!("Content-Length: {}", content_length);
 
         if content_length > 0 {
             let mut body_buffer = vec![0; content_length];

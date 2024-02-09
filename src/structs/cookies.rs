@@ -43,7 +43,7 @@ impl Cookies {
         let mut bytes: Vec<u8> = vec![];
 
         for (name, cookie) in self.cookies.iter() {
-            bytes.extend(b"Set-Cookie: ");
+            bytes.extend(b"set-cookie: ");
             bytes.extend(name.as_bytes());
             bytes.extend(b"=");
             bytes.extend(cookie.value().as_bytes());
@@ -157,7 +157,7 @@ mod tests {
         let result = cookies.to_bytes();
         assert_eq!(
             String::from_utf8(result).unwrap(),
-            String::from("Set-Cookie: id=1; Expires=Mon, 18 Dec 2023 06:11:00 GMT; Domain=localhost; Path=/; Secure\r\nSet-Cookie: name=John; Max-Age=86400; HttpOnly; SameSite=Strict\r\n")
+            String::from("set-cookie: id=1; Expires=Mon, 18 Dec 2023 06:11:00 GMT; Domain=localhost; Path=/; Secure\r\nset-cookie: name=John; Max-Age=86400; HttpOnly; SameSite=Strict\r\n")
         )
     }
 }

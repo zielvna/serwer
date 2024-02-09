@@ -83,7 +83,7 @@ mod tests {
         let result = String::from_utf8(response.write()).unwrap();
         assert_eq!(
             result,
-            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+            "HTTP/1.1 200 OK\r\ncontent-length: 11\r\n\r\nHello World"
         );
     }
 
@@ -100,7 +100,7 @@ mod tests {
         let mut response = Response::new(&Version::HTTP_1_1);
         response.set_header("Content-Type", "text/html");
         let result = String::from_utf8(response.write()).unwrap();
-        assert_eq!(result, "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n");
+        assert_eq!(result, "HTTP/1.1 200 OK\r\ncontent-type: text/html\r\n\r\n");
     }
 
     #[test]
@@ -108,7 +108,7 @@ mod tests {
         let mut response = Response::new(&Version::HTTP_1_1);
         response.set_cookie("id", Cookie::new("id", "1"));
         let result = String::from_utf8(response.write()).unwrap();
-        assert_eq!(result, "HTTP/1.1 200 OK\r\nSet-Cookie: id=1\r\n\r\n");
+        assert_eq!(result, "HTTP/1.1 200 OK\r\nset-cookie: id=1\r\n\r\n");
     }
 
     #[test]
@@ -118,13 +118,13 @@ mod tests {
         let result = String::from_utf8(response.clone().write()).unwrap();
         assert_eq!(
             result,
-            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+            "HTTP/1.1 200 OK\r\ncontent-length: 11\r\n\r\nHello World"
         );
         response.set_body_from_bytes("World Hello".as_bytes().to_vec());
         let result = String::from_utf8(response.clone().write()).unwrap();
         assert_eq!(
             result,
-            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nWorld Hello"
+            "HTTP/1.1 200 OK\r\ncontent-length: 11\r\n\r\nWorld Hello"
         );
     }
 }

@@ -37,17 +37,19 @@ impl Headers {
             return Err(SerwerError::InvalidHeaderCharacters(String::from(string)));
         }
 
-        self.headers.insert(String::from(name), String::from(value));
+        self.headers
+            .insert(name.to_lowercase(), String::from(value));
 
         Ok(())
     }
 
     pub fn set_header(&mut self, name: &str, value: &str) {
-        self.headers.insert(String::from(name), String::from(value));
+        self.headers
+            .insert(name.to_lowercase(), String::from(value));
     }
 
     pub fn header(&self, name: &str) -> Option<&String> {
-        self.headers.get(name)
+        self.headers.get(name.to_lowercase().as_str())
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
@@ -148,7 +150,7 @@ mod tests {
         let result = headers.to_bytes();
         assert_eq!(
             String::from_utf8(result).unwrap(),
-            String::from("Connection: keep-alive\r\nHost: localhost:80\r\n")
+            String::from("connection: keep-alive\r\nhost: localhost:80\r\n")
         )
     }
 }

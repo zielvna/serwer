@@ -102,7 +102,7 @@ mod tests {
 
         assert_eq!(
             String::from_utf8_lossy(response.write().as_slice()),
-            "HTTP/1.1 200 OK\r\nContent-Length: 11\r\n\r\nHello World"
+            "HTTP/1.1 200 OK\r\ncontent-length: 11\r\n\r\nHello World"
         );
     }
 
