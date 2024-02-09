@@ -29,16 +29,21 @@ impl Request {
         let parsed_buffer = buffer.trim_end_matches("\r\n");
         let first_line: Vec<&str> = parsed_buffer.split(" ").collect();
 
-        if first_line.len() != 3 {
+        if first_line.len() != 2 && first_line.len() != 3 {
             return Err(SerwerError::InvalidRequestLine(String::from(parsed_buffer)));
         }
 
-        let (method_string, path_string, version_string) =
-            (first_line[0], first_line[1], first_line[2]);
+        let (method_string, path_string) = (first_line[0], first_line[1]);
 
         let method = Method::from_string(method_string)?;
         let path = Path::from_string(path_string)?;
-        let version = Version::from_string(version_string)?;
+
+        let version = if first_line.len() == 3 {
+            let version_string = first_line[2];
+            Version::from_string(version_string)?
+        } else {
+            Version::HTTP_0_9
+        };
 
         let mut headers = Headers::new();
 
@@ -154,6 +159,16 @@ mod tests {
     }
 
     #[test]
+    fn test_from_stream_http_0_9() {
+        let result = request_from_bytes("GET /\r\n\r\n".as_bytes()).unwrap();
+
+        assert_eq!(result.method(), Method::GET);
+        assert_eq!(result.original_url(), "/");
+        assert_eq!(result.version(), Version::HTTP_0_9);
+        assert_eq!(result.body().unwrap(), String::from(""));
+    }
+
+    #[test]
     fn test_from_stream_headers() {
         let result = request_from_bytes(
             "GET / HTTP/1.1\r\nHost: localhost:80\r\nConnection: keep-alive\r\n\r\n".as_bytes(),
@@ -247,10 +262,10 @@ mod tests {
             Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET / HTTP/1.1"
         ));
 
-        let result = request_from_bytes("GET /\r\n\r\n".as_bytes());
+        let result = request_from_bytes("GET\r\n\r\n".as_bytes());
         assert!(matches!(
             result,
-            Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET /"
+            Err(SerwerError::InvalidRequestLine(error_string)) if &error_string == "GET"
         ));
     }
 

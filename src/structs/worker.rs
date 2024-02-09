@@ -115,7 +115,7 @@ mod tests {
         .unwrap();
         let routes = Arc::new(RwLock::new(vec![route]));
 
-        let stream = stream_from_bytes(b"GET /\r\n\r\n");
+        let stream = stream_from_bytes(b"GET\r\n\r\n");
         let response = Worker::handle_stream(&stream, &routes);
 
         assert_eq!(

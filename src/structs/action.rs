@@ -1,4 +1,4 @@
-use crate::{Request, Response};
+use crate::{Request, Response, Version};
 
 pub struct Action {
     func: Box<dyn Fn(Request, Response) -> Response + Send + Sync + 'static>,
@@ -15,7 +15,7 @@ impl Action {
     }
 
     pub fn run(&self, request: Request) -> Response {
-        let response = Response::new(&request.version());
+        let response = Response::new(&Version::HTTP_1_1);
         (self.func)(request, response)
     }
 }
