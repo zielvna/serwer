@@ -122,7 +122,7 @@ mod tests {
             Path {
                 original_url: String::from("/user"),
                 segments: vec![Segment::from_string("user").unwrap()],
-                query_params: QueryParams::new(),
+                query_params: QueryParams::new()
             }
         );
 
@@ -136,7 +136,7 @@ mod tests {
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("").unwrap()
                 ],
-                query_params: QueryParams::new(),
+                query_params: QueryParams::new()
             }
         );
 
@@ -150,7 +150,7 @@ mod tests {
                     Segment::from_string("user").unwrap(),
                     Segment::from_string("<id>").unwrap()
                 ],
-                query_params: QueryParams::new(),
+                query_params: QueryParams::new()
             }
         );
 
@@ -165,7 +165,7 @@ mod tests {
                     Segment::from_string("").unwrap(),
                     Segment::from_string("<id>").unwrap()
                 ],
-                query_params: QueryParams::new(),
+                query_params: QueryParams::new()
             }
         );
     }
@@ -179,7 +179,7 @@ mod tests {
             Path {
                 original_url: String::from("/user?id=1"),
                 segments: vec![Segment::from_string("user").unwrap()],
-                query_params: QueryParams::from_string("id=1").unwrap(),
+                query_params: QueryParams::from_string("id=1").unwrap()
             }
         );
 
@@ -199,7 +199,7 @@ mod tests {
             Path {
                 original_url: String::from("/user#header"),
                 segments: vec![Segment::from_string("user").unwrap()],
-                query_params: QueryParams::new(),
+                query_params: QueryParams::new()
             }
         );
 
@@ -210,7 +210,7 @@ mod tests {
             Path {
                 original_url: String::from("/user?id=1#header"),
                 segments: vec![Segment::from_string("user").unwrap()],
-                query_params: QueryParams::from_string("id=1").unwrap(),
+                query_params: QueryParams::from_string("id=1").unwrap()
             }
         );
     }
@@ -231,7 +231,7 @@ mod tests {
             Path {
                 original_url: String::from("/"),
                 segments: vec![Segment::from_string("").unwrap()],
-                query_params: QueryParams::new(),
+                query_params: QueryParams::new()
             }
         );
 
@@ -242,7 +242,7 @@ mod tests {
             Path {
                 original_url: String::from("/?id=1"),
                 segments: vec![Segment::from_string("").unwrap()],
-                query_params: QueryParams::from_string("id=1").unwrap(),
+                query_params: QueryParams::from_string("id=1").unwrap()
             }
         );
     }

@@ -2,6 +2,7 @@ use crate::{Request, SerwerError};
 use std::{
     io::Write,
     net::{TcpListener, TcpStream},
+    sync::atomic::{AtomicU16, Ordering},
     thread,
 };
 
@@ -24,4 +25,10 @@ pub fn request_from_bytes(data: &[u8]) -> Result<Request, SerwerError> {
     let stream = stream_from_bytes(data);
 
     Request::from_stream(&stream)
+}
+
+static COUNTER: AtomicU16 = AtomicU16::new(29170);
+
+pub fn port() -> u16 {
+    COUNTER.fetch_add(1, Ordering::Relaxed)
 }

@@ -155,9 +155,6 @@ mod tests {
                 .set_same_site("Strict"),
         );
         let result = cookies.to_bytes();
-        assert_eq!(
-            String::from_utf8(result).unwrap(),
-            String::from("set-cookie: id=1; Expires=Mon, 18 Dec 2023 06:11:00 GMT; Domain=localhost; Path=/; Secure\r\nset-cookie: name=John; Max-Age=86400; HttpOnly; SameSite=Strict\r\n")
-        )
+        assert_eq!(String::from_utf8(result).unwrap(), String::from("set-cookie: id=1; Expires=Mon, 18 Dec 2023 06:11:00 GMT; Domain=localhost; Path=/; Secure\r\nset-cookie: name=John; Max-Age=86400; HttpOnly; SameSite=Strict\r\n"))
     }
 }

@@ -20,6 +20,13 @@ macro_rules! print_error {
     }};
 }
 
+macro_rules! custom_panic {
+    ($message:expr) => {{
+        let caller = std::panic::Location::caller().to_string();
+        panic!("\n{}\nCalled at {}\n", $message, caller);
+    }};
+}
+
 macro_rules! generate_route {
     ($method: ident, $method_enum: expr) => {
         #[track_caller]
@@ -27,6 +34,10 @@ macro_rules! generate_route {
         where
             F: Fn(Request, Response) -> Response + Send + Sync + 'static,
         {
+            if self.route_exists(&$method_enum, path) {
+                custom_panic!("Route already exists")
+            }
+
             let routes = Arc::clone(&self.routes);
             let mut routes =
                 unwrap_error!(routes.write(), "Failed to lock routes for write access");
@@ -49,6 +60,7 @@ macro_rules! route {
     };
 }
 
+pub(crate) use custom_panic;
 pub(crate) use generate_route;
 pub(crate) use print_error;
 pub(crate) use unwrap_error;
