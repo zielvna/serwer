@@ -78,8 +78,6 @@ impl Request {
             .unwrap_or_default();
         let mut body: Vec<u8> = vec![];
 
-        println!("Content-Length: {}", content_length);
-
         if content_length > 0 {
             let mut body_buffer = vec![0; content_length];
             buf_reader.read_exact(&mut body_buffer)?;
